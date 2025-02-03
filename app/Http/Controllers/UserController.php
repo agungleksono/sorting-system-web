@@ -12,4 +12,19 @@ class UserController extends Controller
         $users = User::all();
         return view('pages.user', compact('users'));
     }
+
+    public function store()
+    {
+
+    }
+
+    public function update()
+    {
+        
+    }
+
+    public function deactivate()
+    {
+
+    }
 }
