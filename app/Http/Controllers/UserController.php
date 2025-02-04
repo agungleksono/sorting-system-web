@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Models\User;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Validator;
 
 class UserController extends Controller
 {
@@ -13,9 +14,31 @@ class UserController extends Controller
         return view('pages.user', compact('users'));
     }
 
-    public function store()
+    public function store(Request $request)
     {
+        // $validated = $request->validate([
+        //     'name' => 'required|string|max:30', 
+        //     'npk' => 'required|unique:users,npk', 
+        //     'password' => 'required|string|confirmed', 
+        // ]);
 
+        $validator = Validator::make($request->all(), [
+            'npk' => 'required|unique:users,npk', 
+            'name' => 'required|string|max:30', 
+            'password' => 'required|string|confirmed', 
+        ]);
+
+        if ($validator->fails()) {
+            return redirect('/users/management')->withErrors($validator)->withInput();
+        }
+
+        $user = User::create([
+            'name' => $request->input('name'),
+            'npk' => $request->input('npk'),
+            'password' => $request->input('password'),
+        ]);
+
+        return redirect('/users/management')->with('success', 'User created successfully!');
     }
 
     public function update()

@@ -3,6 +3,8 @@
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\SandboxController;
 use App\Http\Controllers\UserController;
+use App\Http\Controllers\SuspectController;
+use App\Http\Controllers\SuspectImportController;
 
 /*
 |--------------------------------------------------------------------------
@@ -21,6 +23,9 @@ Route::get('/', function () {
 
 Route::get('/test', [SandboxController::class, 'test']);
 Route::get('/users/management', [UserController::class, 'index']);
+Route::post('/users', [UserController::class, 'store']);
+// Route::post('/suspect/import', [SuspectController::class, 'importSuspects']);
+Route::post('/suspect/import', [SuspectImportController::class, 'import']);
 
 Route::get('/home', function () {
     return view('pages.home');

@@ -7,6 +7,14 @@
 <div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-3 border-bottom">
     <h1 class="h3">List User</h1>
 </div>
+
+@if ($errors->any())
+    <div class="alert alert-danger alert-dismissible fade show mt-4" role="alert">
+        {{ $errors->first() }}
+        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+    </div>
+@endif
+
 <div class="container-fluid mt-4">
     <button type="button" class="btn btn-primary mb-3" data-bs-toggle="modal" data-bs-target="#addUserModal">
         <span data-feather="plus" class="align-text-bottom"></span>
@@ -95,19 +103,24 @@
                 <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
             </div>
             <div class="modal-body">
-                <form method="POST" action="">
+                <form method="POST" action="{{ url('users') }}">
+                    @csrf
                     <div class="mb-3">
                         <label for="npk" class="form-label">NPK</label>
-                        <input type="text" class="form-control" id="npk" aria-describedby="npkHelp">
+                        <input type="text" class="form-control" name="npk" id="npk" aria-describedby="npkHelp">
                         <!-- <div id="emailHelp" class="form-text">We'll never share your email with anyone else.</div> -->
                     </div>
                     <div class="mb-3">
-                        <label for="userName" class="form-label">Name</label>
-                        <input type="text" class="form-control" id="userName" aria-describedby="userNameHelp">
+                        <label for="user_name" class="form-label">Name</label>
+                        <input type="text" class="form-control" name="user_name" id="user_name" aria-describedby="userNameHelp">
                     </div>
                     <div class="mb-3">
-                        <label for="exampleInputPassword1" class="form-label">Password</label>
-                        <input type="password" class="form-control" id="exampleInputPassword1">
+                        <label for="password" class="form-label">Password</label>
+                        <input type="password" class="form-control" name="password" id="password">
+                    </div>
+                    <div class="mb-3">
+                        <label for="password_confirmation" class="form-label">Retype Password</label>
+                        <input type="password" class="form-control" name="password_confirmation" id="password_confirmation">
                     </div>
                     <button type="submit" class="btn btn-primary">Submit</button>
                 </form>
