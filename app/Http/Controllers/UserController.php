@@ -16,12 +16,6 @@ class UserController extends Controller
 
     public function store(Request $request)
     {
-        // $validated = $request->validate([
-        //     'name' => 'required|string|max:30', 
-        //     'npk' => 'required|unique:users,npk', 
-        //     'password' => 'required|string|confirmed', 
-        // ]);
-
         $validator = Validator::make($request->all(), [
             'npk' => 'required|unique:users,npk', 
             'name' => 'required|string|max:30', 
