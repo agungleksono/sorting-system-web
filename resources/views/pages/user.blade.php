@@ -8,6 +8,15 @@
     <h1 class="h3">List User</h1>
 </div>
 
+{{-- Success Alert --}}
+@if (session('success'))
+    <div class="alert alert-success alert-dismissible fade show mt-4" role="alert">
+        {{ session('success') }}
+        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+    </div>
+@endif
+
+{{-- Error Alert --}}
 @if ($errors->any())
     <div class="alert alert-danger alert-dismissible fade show mt-4" role="alert">
         {{ $errors->first() }}
@@ -23,78 +32,32 @@
     <table id="example" class="table table-striped" style="width:100%">
         <thead>
             <tr>
-                <th>NPK</th>
-                <th>Name</th>
-                <th>Section</th>
-                <th>Authority</th>
-                <th>Status</th>
+                <th class="text-center">NPK</th>
+                <th class="text-center">Name</th>
+                <!-- <th>Section</th>
+                <th>Authority</th> -->
+                <th class="text-center">Status</th>
                 <th></th>
             </tr>
         </thead>
         <tbody>
-            <tr>
-                <td>Tiger Nixon</td>
-                <td>System Architect</td>
-                <td>Edinburgh</td>
-                <td>61</td>
-                <td>2011-04-25</td>
-                <td>$320,800</td>
+            @foreach($users as $user)
+            <tr data-id="{{ $user->user_id }}">
+                <td class="text-center">{{ $user->npk }}</td>
+                <td class="text-center">{{ $user->name }}</td>
+                <td class="text-center">{{ $user->is_active == '1' ? 'Active' : 'Non Active' }}</td>
+                <td class="text-center">
+                    <button class="btn btn-success edit-btn" data-id="{{ $user->user_id }}" data-bs-toggle="modal" data-bs-target="#editUserModal">
+                        <span data-feather="edit" class="align-text-bottom"></span>
+                    </button>
+                </td>
             </tr>
-            <tr>
-                <td>Garrett Winters</td>
-                <td>Accountant</td>
-                <td>Tokyo</td>
-                <td>63</td>
-                <td>2011-07-25</td>
-                <td>$170,750</td>
-            </tr>
-            <tr>
-                <td>Ashton Cox</td>
-                <td>Junior Technical Author</td>
-                <td>San Francisco</td>
-                <td>66</td>
-                <td>2009-01-12</td>
-                <td>$86,000</td>
-            </tr>
-            <tr>
-                <td>Cedric Kelly</td>
-                <td>Senior Javascript Developer</td>
-                <td>Edinburgh</td>
-                <td>22</td>
-                <td>2012-03-29</td>
-                <td>$433,060</td>
-            </tr>
-            <tr>
-                <td>Airi Satou</td>
-                <td>Accountant</td>
-                <td>Tokyo</td>
-                <td>33</td>
-                <td>2008-11-28</td>
-                <td>$162,700</td>
-            </tr>
-            <tr>
-                <td>Brielle Williamson</td>
-                <td>Integration Specialist</td>
-                <td>New York</td>
-                <td>61</td>
-                <td>2012-12-02</td>
-                <td>$372,000</td>
-            </tr>
+            @endforeach
         </tbody>
-        <tfoot>
-            <tr>
-                <th>Name</th>
-                <th>Position</th>
-                <th>Office</th>
-                <th>Age</th>
-                <th>Start date</th>
-                <th>Salary</th>
-            </tr>
-        </tfoot>
     </table>
 </div>
 
-<!-- Modal -->
+<!-- Add User Modal -->
 <div class="modal fade" id="addUserModal" tabindex="-1" aria-labelledby="addUserModalLabel" aria-hidden="true">
     <div class="modal-dialog modal-dialog-centered">
         <div class="modal-content">
@@ -133,10 +96,74 @@
     </div>
 </div>
 
+<!-- Edit User Modal -->
+<div class="modal fade" id="editUserModal" tabindex="-1" aria-labelledby="editUserModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h1 class="modal-title fs-5" id="editUserModalLabel">Edit User</h1>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <form id="editForm" method="POST" action="{{ url('users') }}" action="{{ route('user.update', ['user_id' => 'user_id_placeholder']) }}">
+                    @csrf
+                    @method('PUT')
+                    <input type="hidden" id="editUserId">
+                    <div class="mb-3">
+                        <label for="npk" class="form-label">NPK</label>
+                        <input type="text" class="form-control" name="npk" id="editNpk" aria-describedby="npkHelp">
+                    </div>
+                    <div class="mb-3">
+                        <label for="user_name" class="form-label">Name</label>
+                        <input type="text" class="form-control" name="user_name" id="editName" aria-describedby="userNameHelp">
+                    </div>
+                    <div class="mb-3">
+                        <label for="status" class="form-label">Status</label>
+                        <select class="form-select" name="status" id="editStatus" aria-label="Status select">
+                            <option value="1">Active</option>
+                            <option value="0">Non Active</option>
+                        </select>
+                    </div>
+                    <button type="submit" class="btn btn-primary">Submit</button>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+            </div>
+        </div>
+    </div>
+</div>
+
 @endsection
 
 @push('addon-script')
     <script>
         new DataTable('#example');
+
+        $(document).ready(function() {
+            $(document).on('click', '.edit-btn', function() {
+                var userId = $(this).data('id');
+                // Optionally, use AJAX to load user data into a modal or form
+                $.ajax({
+                    url: '/users/' + userId + '/edit',  // Assuming you're using a route for editing
+                    method: 'GET',
+                    success: function(data) {
+                        // Populate the form fields with the user's data
+                        $('#editUserId').val(data.user_id);
+                        $('#editNpk').val(data.npk);
+                        $('#editName').val(data.name);
+                        $('#editStatus').val(data.is_active);
+
+                        // Update form action with the correct user_id
+                        var formAction = '{{ route("user.update", ["user_id" => ":user_id"]) }}';
+                        formAction = formAction.replace(':user_id', userId);
+                        $('#editForm').attr('action', formAction);
+
+                        // Show the modal
+                        // $('#editUserModal').show();
+                    }
+                });
+            });
+        });
     </script>
 @endpush

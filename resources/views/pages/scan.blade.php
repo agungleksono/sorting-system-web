@@ -5,7 +5,7 @@
 @section('content')
 
 <div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-3 border-bottom">
-    <h1 class="h3">Upload Suspect Data</h1>
+    <h1 class="h3">Scanning Data</h1>
 </div>
 
 {{-- Success Alert --}}
@@ -17,7 +17,7 @@
 @endif
 
 {{-- Error Alert --}}
-@if (session('errors'))
+@if(session('errors'))
     <div class="alert alert-danger alert-dismissible fade show mt-4" role="alert">
         {{ session('errors') }}
         <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
@@ -34,19 +34,35 @@
         <button type="submit">Import</button>
     </form> -->
 
-    <div class="mb-3 col-md-4">
-        <label for="formFile" class="form-label fw-semibold">Import Suspect Part</label>
-        <form action="{{ url('suspect/import') }}" method="POST" class="row g-3" enctype="multipart/form-data">
-            @csrf
-            <div class="col-auto">
-                <input class="form-control" name="file" type="file" id="formFile" accept=".xlsx,.xls,.csv" required>
-            </div>
-            <div class="col-auto">
-                <button type="submit" class="btn btn-primary">Import</button>
-            </div>
-        </form>
-        <div class="form-text">Pastikan format excel yang di upload sesuai dengan format berikut.</div>
-    </div>
+    <form method="GET" action="{{ url('scans') }}" class="row gy-2 gx-3 align-items-center">
+        <!-- <div class="col-auto">
+            <label for="partNo" class="form-label">Part No.</label>
+            <input type="text" class="form-control" name="part_no" id="partNo">
+        </div>
+        <div class="col-auto">
+            <label for="lotNo" class="form-label">Lot No.</label>
+            <input type="text" class="form-control" name="lot_no" id="lotNo">
+        </div>
+        <div class="col-auto">
+            <label for="containerNo" class="form-label">Container No.</label>
+            <input type="text" class="form-control" name="container_no" id="containerNo">
+        </div>
+        <div class="col-auto">
+            <label for="invoiceNo" class="form-label">Invoice No.</label>
+            <input type="text" class="form-control" name="invoice_no" id="invoiceNo">
+        </div> -->
+        <div class="col-auto">
+            <label for="startDate" class="form-label">Start Date</label>
+            <input type="date" class="form-control" name="start_date" id="startDate" required>
+        </div>
+        <div class="col-auto">
+            <label for="endDate" class="form-label">End Date</label>
+            <input type="date" class="form-control" name="end_date" id="endDate" required>
+        </div>
+        <div class="col-auto">
+            <button type="submit" class="btn btn-primary mt-4" name="submit" value="1">Search</button>
+        </div>
+    </form>
 </div>
 
 <div class="mt-5">
