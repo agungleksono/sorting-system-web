@@ -26,25 +26,32 @@ use Illuminate\Support\Facades\Auth;
 
 Route::get('/signin', [AuthController::class, 'loginPage'])->name('login');
 Route::post('/signin', [AuthController::class, 'loginWeb']);
+Route::post('/signout', [AuthController::class, 'logoutWeb'])->name('logout');
 
 Route::get('/test', [SandboxController::class, 'test']);
-Route::get('/users/management', [UserController::class, 'index']);
-Route::get('/users/{id}/edit', [UserController::class, 'edit']);
-Route::put('/users/{user_id}', [UserController::class, 'update'])->name('user.update');
-Route::post('/users', [UserController::class, 'store']);
+// Route::get('/users/management', [UserController::class, 'index']);
+// Route::get('/users/{id}/edit', [UserController::class, 'edit']);
+// Route::put('/users/{user_id}', [UserController::class, 'update'])->name('user.update');
+// Route::post('/users', [UserController::class, 'store']);
 // Route::post('/suspect/import', [SuspectController::class, 'importSuspects']);
-Route::post('/suspect/import', [SuspectImportController::class, 'import']);
+// Route::post('/suspect/import', [SuspectImportController::class, 'import']);
 
 Route::middleware(['auth.web'])->group(function () {
     Route::get('/', [SuspectImportController::class, 'index']);
-    Route::get('/home', [SuspectImportController::class, 'index'])->name('suspect');
+    Route::get('/suspects', [SuspectImportController::class, 'index'])->name('suspects.index');
+    Route::post('/suspects/import', [SuspectImportController::class, 'import'])->name('suspects.import');
+    Route::post('/suspect/manual-add', [SuspectImportController::class, 'manualAdd'])->name('suspects.manual-add');
+
 
     Route::get('/scans', [SuspectController::class, 'dataScanned']);
+
+    // User management route
+    Route::get('/users/management', [UserController::class, 'index']);
+    Route::get('/users/{id}/edit', [UserController::class, 'edit']);
+    Route::put('/users/{user_id}', [UserController::class, 'update'])->name('user.update');
+    Route::post('/users', [UserController::class, 'store']);
 });
 
-// Route::get('/', [SuspectImportController::class, 'index'])->middleware('auth.web');
-// Route::get('/home', [SuspectImportController::class, 'index'])->middleware('auth.web');
-
-// Route::get('/home', function () {
-//     return view('pages.home');
-// });
+Route::get('/print', function () {
+    return view('pages.print');
+});

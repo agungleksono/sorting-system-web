@@ -66,7 +66,6 @@
 </div>
 
 <div class="mt-5">
-    <h4 class="mb-3">Suspect Part Data</h4>
     <table id="suspectTable" class="table table-striped" style="width:100%">
         <thead>
             <tr>

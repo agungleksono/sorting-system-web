@@ -77,7 +77,11 @@
             <div class="w-100"></div>
             <div class="navbar-nav">
                 <div class="nav-item text-nowrap">
-                    <a class="nav-link px-3" href="#">Sign out</a>
+                    <form action="{{ route('logout') }}" method="POST">
+                        @csrf
+                        <button type="submit" class="nav-link px-3">Sign Out</button>
+                    </form>
+                    <!-- <a class="nav-link px-3" href="#">Sign out</a> -->
                 </div>
             </div>
         </header>
@@ -88,9 +92,9 @@
                     <div class="position-sticky pt-3 sidebar-sticky">
                         <ul class="nav flex-column">
                             <li class="nav-item">
-                                <a class="nav-link active" aria-current="page" href="#">
+                                <a class="nav-link {{ request()->is('suspects') || request()->is('') || request()->is('suspects/*') ? 'active' : '' }}" aria-current="page" href="{{ route('suspects.index') }}">
                                 <span data-feather="home" class="align-text-bottom"></span>
-                                Dashboard
+                                Suspect
                                 </a>
                             </li>
                             <li class="nav-item">

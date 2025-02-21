@@ -7,6 +7,8 @@ use Illuminate\Support\Facades\Validator;
 use Illuminate\Support\Facades\Auth;
 use App\Models\User;
 use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Str;
+use App\Helpers\ResponseFormatter;
 
 class AuthController extends Controller
 {
@@ -89,11 +91,51 @@ class AuthController extends Controller
             session(['name' => $user->name]);
             session(['npk' => $user->npk]);
 
-            return redirect('home');
+            return redirect()->route('suspects.index');
         }
 
         return back()->withErrors([
             'npk' => 'NPK or Password incorrect!',
         ]);
+    }
+
+    public function loginApi(Request $request)
+    {
+        $validator = Validator::make($request->all(), [
+            'npk' => 'required|string',
+            'password' => 'required|string',
+        ]);
+
+        if ($validator->fails()) {
+            // return response()->json(['error' => $validator->errors()], 400);
+            return ResponseFormatter::error(null, $validator->errors()->first(), 400);
+        }
+
+        $user = User::where('npk', $request->input('npk'))->first();
+
+        if ($user && Hash::check($request->input('password'), $user->password))
+        {
+            $responseData = [
+                'user_id' => $user->user_id,
+                'name' => $user->name,
+                'npk' => $user->npk,
+            ];
+
+            return ResponseFormatter::success($responseData, 'Login success');
+        } else {
+            return ResponseFormatter::error(null, 'NPK or Password incorrect', 400);
+        }
+    }
+
+    public function logoutWeb(Request $request)
+    {
+        // Clear all session data
+        $request->session()->flush();
+
+        // Optionally, regenerate the session ID for security purposes
+        $request->session()->regenerate();
+
+        // Redirect to the login page (or any other page)
+        return redirect()->route('login'); // Or the route you want after logout
     }
 }
