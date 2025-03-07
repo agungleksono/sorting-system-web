@@ -98,11 +98,17 @@
                                 </a>
                             </li>
                             <li class="nav-item">
+                                <a class="nav-link {{ request()->is('cases/*') || request()->is('cases') ? 'active' : '' }}" href="{{ url('cases') }}">
+                                <span data-feather="file" class="align-text-bottom"></span>
+                                Case
+                                </a>
+                            </li>
+                            <!-- <li class="nav-item">
                                 <a class="nav-link {{ request()->is('scans') ? 'active' : '' }}" href="{{ url('scans') }}">
                                 <span data-feather="file" class="align-text-bottom"></span>
                                 Scanning Data
                                 </a>
-                            </li>
+                            </li> -->
                             <!-- <li class="nav-item">
                                 <a class="nav-link" href="#">
                                 <span data-feather="shopping-cart" class="align-text-bottom"></span>

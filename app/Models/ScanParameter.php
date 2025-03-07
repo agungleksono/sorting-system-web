@@ -5,13 +5,13 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 
-class Suspect extends Model
+class ScanParameter extends Model
 {
     use HasFactory;
-
+    
     public $timestamps = false;
 
     protected $fillable = [
-        'suspect_id', 'part_no', 'lot_no', 'box_id', 'container_no', 'invoice_no', 'suspect_case_id', 'created_by', 'created_at', 'updated_by', 'updated_at', 'scanned_by', 'scanned_at',
+        'code', 'scan_parameter', 'created_by', 'created_at', 'updated_by', 'updated_at',
     ];
 }

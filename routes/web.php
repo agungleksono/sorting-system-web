@@ -7,6 +7,7 @@ use App\Http\Controllers\SuspectController;
 use App\Http\Controllers\SuspectImportController;
 use App\Http\Controllers\AuthController;
 use App\Http\Controllers\ScanController;
+use App\Http\Controllers\SuspectCaseController;
 use Illuminate\Support\Facades\Auth;
 
 /*
@@ -42,6 +43,13 @@ Route::middleware(['auth.web'])->group(function () {
     Route::post('/suspects/import', [SuspectImportController::class, 'import'])->name('suspects.import');
     Route::post('/suspect/manual-add', [SuspectImportController::class, 'manualAdd'])->name('suspects.manual-add');
 
+    // Suspect Case Routes
+    Route::get('/cases', [SuspectCaseController::class, 'index'])->name('cases.index');
+    Route::get('/cases/create', [SuspectCaseController::class, 'create'])->name('cases.create');
+    Route::post('/cases', [SuspectCaseController::class, 'store'])->name('cases.store');
+    Route::get('/cases/{suspect_case_id}/edit', [SuspectCaseController::class, 'edit'])->name('cases.edit');
+    Route::patch('/cases/{suspect_case_id}', [SuspectCaseController::class, 'update'])->name('cases.update');
+    Route::delete('/cases/{suspect_case_id}', [SuspectCaseController::class, 'destroy'])->name('cases.destroy');
 
     Route::get('/scans', [SuspectController::class, 'dataScanned']);
 

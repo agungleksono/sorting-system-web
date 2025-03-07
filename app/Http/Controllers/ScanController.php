@@ -8,6 +8,7 @@ use App\Models\PrintQueue;
 use App\Models\QrCode;
 use Illuminate\Support\Facades\Validator;
 use App\Helpers\ResponseFormatter;
+use Illuminate\Support\Facades\DB;
 
 class ScanController extends Controller
 {
@@ -19,10 +20,12 @@ class ScanController extends Controller
 
     public function scan(Request $request)
     {
+        date_default_timezone_set('Asia/Jakarta');
+        
         $validator = Validator::make($request->all(), [
-            'part_no' => 'required', 
             'qr_code' => 'required',
-            // 'scanned_by' => 'required',
+            'scan_parameter' => 'required',
+            'scanned_by' => 'required',
         ]);
 
         if ($validator->fails()) {
@@ -30,24 +33,36 @@ class ScanController extends Controller
         }
 
         $partNo = $request->input('part_no');
-        $qrCode = substr($request->input('qr_code'), 0, 1) === "\000026" ? substr($request->input('qr_code'), 1) : $request->input('qr_code');
-        // $scannedBy = $request->input('scanned_by');
+        $scanParameter = $request->input('scan_parameter');
+        $qrCode = $request->input('qr_code');
+        $scannedBy = $request->input('scanned_by');
 
         if ($this->isQrScanned($qrCode)) {
             return ResponseFormatter::error(null, 'QR sudah di scan.', 422);
         }
         
-        $suspects = Suspect::where('part_no', $partNo)
-                            ->select('suspect_id', 'part_no', 'lot_no')
+        $suspects = Suspect::where('is_scanned', '0')
+                            ->select('suspect_id', 'part_no', 'lot_no', 'box_id', 'invoice_no')
                             ->get();
 
         // Extracting the 'lot_no' values into an array
         // $lotNoArr = $suspects->pluck('lot_no')->toArray();
 
+        $listPart = null;
+
+        if ($scanParameter == 'PART_NO') $listPart = $suspects->pluck('part_no')->toArray();
+        elseif ($scanParameter == 'LOT_NO') $listPart = $suspects->pluck('lot_no')->toArray();
+        elseif ($scanParameter == 'INVOICE_NO') $listPart = $suspects->pluck('invoice_no')->toArray();
+        elseif ($scanParameter == 'BOX_NO') $listPart = $suspects->pluck('box_id')->toArray();
+
+        // return response()->json($listPart);
+
         $foundedLot = null;
         $judgment = 'ok';
         $isSuspectFound = false;
         $suspectId = null;
+        
+        $foundedData = [];
 
         // foreach ($suspects as $suspect) {
         //     if (strpos($qrCode, $suspect->lot_no) !== false) {
@@ -58,48 +73,150 @@ class ScanController extends Controller
         //     }
         // }
 
-        foreach ($suspects as $suspect) {
-            if (strpos($qrCode, $suspect->lot_no) !== false) {
-                $foundedLot = $suspect->lot_no;
+        foreach ($listPart as $index => $value) {
+            if (strpos($qrCode, $value) !== false) {
+                // $foundedLot = $part;
                 $judgment = 'ng';
                 $isSuspectFound = true;
-                $suspectId = $suspect->suspect_id;
+                // $suspectId = $suspect->suspect_id;
+
+                $foundedData = [
+                    'suspect_id' => $suspects[$index]->suspect_id,
+                    'part_no' => $suspects[$index]->part_no,
+                    'lot_no' => $suspects[$index]->lot_no,
+                    'box_id' => $suspects[$index]->box_id,
+                    'invoice_no' => $suspects[$index]->invoice_no,
+                    'search_value' => $value,
+                ];
+
                 break;
             }
         }
 
         $responseData = [
             'is_suspect' => $isSuspectFound,
+            'part_no' => $isSuspectFound ? $foundedData['part_no'] : '-',
+            'search_value' => $isSuspectFound ? $foundedData['search_value'] : '-',
         ];
 
-        if ($isSuspectFound) {
-            Suspect::where('suspect_id', $suspectId)->update([
-                'is_scanned' => '1',
-                'scanned_at' => date('Y-m-d H:i:s'),
+        DB::beginTransaction();
+        try {
+            if ($isSuspectFound) {
+                Suspect::where('suspect_id', $foundedData['suspect_id'])->update([
+                    'is_scanned' => '1',
+                    'scanned_at' => date('Y-m-d H:i:s'),
+                    'scanned_by' => $scannedBy,
+                ]);
+            }
+    
+            QrCode::create([
+                'qr_id' => date('dmyHis'),
+                'qr_content' => $qrCode,
+                'judgment' => $judgment,
+                'part_no' => $isSuspectFound ? $foundedData['part_no'] : null,
+                'lot_no' => $isSuspectFound ? $foundedData['lot_no'] : null,
+                'created_at' => date('Y-m-d H:i:s'),
+                'created_by' => $scannedBy,
+            ]);
+    
+            PrintQueue::create([
+                'part_no' => $isSuspectFound ? $foundedData['part_no'] : null,
+                'lot_no' => $isSuspectFound ? $foundedData['lot_no'] : null,
+                'invoice_no' => $isSuspectFound ? $foundedData['invoice_no'] : null,
+                'judgment' => $judgment,
+                'status' => 'pending',
             ]);
 
-            
+            DB::commit();
+            return ResponseFormatter::success($responseData, 'Scanning success');
+        } catch (\Exception $e) {
+            DB::rollBack();
         }
-
-        QrCode::create([
-            'qr_id' => date('dmyHis'),
-            'qr_content' => $qrCode,
-            'judgment' => $judgment,
-            'part_no' => $isSuspectFound ? $partNo : '',
-            'lot_no' => $foundedLot,
-            'created_at' => date('Y-m-d H:i:s'),
-        ]);
-
-        PrintQueue::create([
-            'part_no' => $isSuspectFound ? $partNo : '',
-            'lot_no' => $foundedLot,
-            'invoice_no' => '',
-            'judgment' => $judgment,
-            'status' => 'pending',
-        ]);
-
-        return ResponseFormatter::success($responseData, 'Scanning success');
     }
+
+    // public function scan(Request $request)
+    // {
+    //     $validator = Validator::make($request->all(), [
+    //         'part_no' => 'required', 
+    //         'qr_code' => 'required',
+    //         // 'scanned_by' => 'required',
+    //     ]);
+
+    //     if ($validator->fails()) {
+    //         return ResponseFormatter::error(null, $validator->errors()->first(), 400);
+    //     }
+
+    //     $partNo = $request->input('part_no');
+    //     $qrCode = substr($request->input('qr_code'), 0, 1) === "\000026" ? substr($request->input('qr_code'), 1) : $request->input('qr_code');
+    //     // $scannedBy = $request->input('scanned_by');
+
+    //     if ($this->isQrScanned($qrCode)) {
+    //         return ResponseFormatter::error(null, 'QR sudah di scan.', 422);
+    //     }
+        
+    //     $suspects = Suspect::where('part_no', $partNo)
+    //                         ->select('suspect_id', 'part_no', 'lot_no')
+    //                         ->get();
+
+    //     // Extracting the 'lot_no' values into an array
+    //     // $lotNoArr = $suspects->pluck('lot_no')->toArray();
+
+    //     $foundedLot = null;
+    //     $judgment = 'ok';
+    //     $isSuspectFound = false;
+    //     $suspectId = null;
+
+    //     // foreach ($suspects as $suspect) {
+    //     //     if (strpos($qrCode, $suspect->lot_no) !== false) {
+    //     //         $foundedLot = $suspect->lot_no;
+    //     //         $judgment = 'ng';
+    //     //         $isSuspectFound = true;
+    //     //         break;
+    //     //     }
+    //     // }
+
+    //     foreach ($suspects as $suspect) {
+    //         if (strpos($qrCode, $suspect->lot_no) !== false) {
+    //             $foundedLot = $suspect->lot_no;
+    //             $judgment = 'ng';
+    //             $isSuspectFound = true;
+    //             $suspectId = $suspect->suspect_id;
+    //             break;
+    //         }
+    //     }
+
+    //     $responseData = [
+    //         'is_suspect' => $isSuspectFound,
+    //     ];
+
+    //     if ($isSuspectFound) {
+    //         Suspect::where('suspect_id', $suspectId)->update([
+    //             'is_scanned' => '1',
+    //             'scanned_at' => date('Y-m-d H:i:s'),
+    //         ]);
+
+            
+    //     }
+
+    //     QrCode::create([
+    //         'qr_id' => date('dmyHis'),
+    //         'qr_content' => $qrCode,
+    //         'judgment' => $judgment,
+    //         'part_no' => $isSuspectFound ? $partNo : '',
+    //         'lot_no' => $foundedLot,
+    //         'created_at' => date('Y-m-d H:i:s'),
+    //     ]);
+
+    //     PrintQueue::create([
+    //         'part_no' => $isSuspectFound ? $partNo : '',
+    //         'lot_no' => $foundedLot,
+    //         'invoice_no' => '',
+    //         'judgment' => $judgment,
+    //         'status' => 'pending',
+    //     ]);
+
+    //     return ResponseFormatter::success($responseData, 'Scanning success');
+    // }
 
     public function checkPrintQueue()
     {
@@ -131,5 +248,26 @@ class ScanController extends Controller
 
         // Return true if QR code is found, otherwise false
         return $qrCode !== null;
+    }
+
+    public function countScanProgress($suspectCaseId)
+    {
+        $result = DB::select(
+            DB::raw('
+                SELECT 
+                    COUNT(CASE WHEN is_scanned = 1 THEN 1 END) AS current_progress,
+                    COUNT(*) AS max_progress
+                FROM suspects 
+                WHERE suspect_case_id = :suspectCaseId
+            '),
+            ['suspectCaseId' => $suspectCaseId] // Bind the suspect_case_id parameter
+        );
+        
+        $response = [
+            'current_progress' => $result[0]->current_progress,
+            'max_progress' => $result[0]->max_progress,
+        ];
+
+        return ResponseFormatter::success($response, 'Success');
     }
 }

@@ -4,6 +4,7 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\AuthController;
 use App\Http\Controllers\ScanController;
+use App\Http\Controllers\SuspectCaseController;
 
 /*
 |--------------------------------------------------------------------------
@@ -29,6 +30,9 @@ Route::prefix('v1')->group(function () {
 
         Route::post('/scan', [ScanController::class, 'scan']);
         Route::get('/scan/part-no', [ScanController::class, 'getListPartNo']);
+        Route::get('/scan/progress/{suspect_case_id}', [ScanController::class, 'countScanProgress']);
         Route::post('/print-queue', [ScanController::class, 'checkPrintQueue']);
+
+        Route::get('/cases', [SuspectCaseController::class, 'indexApi']);
     });
 });

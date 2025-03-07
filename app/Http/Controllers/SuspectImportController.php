@@ -5,93 +5,26 @@ namespace App\Http\Controllers;
 use Illuminate\Http\Request;
 use PhpOffice\PhpSpreadsheet\IOFactory;
 use App\Models\Suspect;
+use App\Models\SuspectCase;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Validator;
-use App\Helpers\ChunkReadFilter;
 
 class SuspectImportController extends Controller
 {
-    public function index()
+    public function index(Request $request)
     {
-        $suspects = Suspect::where('is_scanned', false)->get();
-        return view('pages.home', compact('suspects'));
+        $caseId = $request->query('caseId');
+        
+        $cases = SuspectCase::all();
+        $suspects = Suspect::where('suspect_case_id', $caseId)->get();
+
+        return view('pages.home', compact('suspects', 'cases'));
     }
-
-    // public function import(Request $request)
-    // {
-    //     $file = $request->file('file');
-
-    //     // Load the Excel file using PhpSpreadsheet
-    //     $spreadsheet = IOFactory::load($file);
-    //     $sheet = $spreadsheet->getSheet(6); // Define the specific sheet
-
-    //     // Get the total row count (including row 14)
-    //     $rowCount = $sheet->getHighestRow();
-    //     $chunkSize = 100; // Process 1000 rows at a time
-
-    //     // Start processing from row 14 onward
-    //     for ($startRow = 14; $startRow <= $rowCount; $startRow += $chunkSize) {
-    //         $endRow = min($startRow + $chunkSize - 1, $rowCount); // Set the end row for this chunk
-
-    //         // Create a chunk read filter for this range of rows (starting from row 14)
-    //         $chunkFilter = new ChunkReadFilter($startRow, $endRow);
-    //         $reader = IOFactory::createReaderForFile($file);
-    //         $reader->setReadFilter($chunkFilter);
-
-    //         // Load only the chunk into memory
-    //         $chunkSpreadsheet = $reader->load($file);
-    //         $chunkSheet = $chunkSpreadsheet->getSheet(6); // Define the specific sheet
-
-    //         // Initialize an array to store data for batch insert
-    //         $dataBatch = [];
-
-    //         // Process each row in this chunk (starting from row 14)
-    //         for ($rowNumber = $startRow; $rowNumber <= $endRow; $rowNumber++) {
-    //             $row = $chunkSheet->getRowIterator($rowNumber)->current();
-    //             $cellIterator = $row->getCellIterator();
-    //             $cellIterator->setIterateOnlyExistingCells(false);
-
-    //             $data = [];
-    //             foreach ($cellIterator as $cell) {
-    //                 $data[] = $cell->getValue();
-    //             }
-
-    //             // Skip invalid rows (you can apply validation here)
-    //             if (empty($data[1]) || empty($data[9])) {
-    //                 continue;
-    //             }
-
-    //             $dataBatch[] = [
-    //                 'part_no' => $data[1],
-    //                 'lot_no' => (string)$data[4],
-    //                 'invoice_no' => $data[9],
-    //                 'container_no' => $data[10],
-    //                 'is_scanned' => '0',
-    //                 'created_by' => session('npk'),
-    //                 'created_at' => now(),
-    //             ];
-    //         }
-
-    //         // Insert the chunk into the database (batch insert)
-    //         if (!empty($dataBatch)) {
-    //             DB::beginTransaction();
-    //             try {
-    //                 Suspect::insert($dataBatch);
-    //                 DB::commit();
-    //             } catch (\Exception $e) {
-    //                 DB::rollBack();
-    //                 Log::error('Import Error: ' . $e->getMessage());
-    //                 return redirect()->route('suspects.index')->with('errors', 'Failed to import data! Please check the log for more details.');
-    //             }
-    //         }
-    //     }
-
-    //     return redirect()->route('suspects.index')->with('success', 'Success to import data!');
-    // }
 
     public function import(Request $request)
     {
         $file = $request->file('file');
+        $caseId = $request->input('case');
 
         // Load the Excel file using PhpSpreadsheet
         $spreadsheet = IOFactory::load($file);
@@ -108,7 +41,7 @@ class SuspectImportController extends Controller
         // $sheet = $spreadsheet->getActiveSheet();
     
         // Get the specific worksheet (can be adjusted)
-        $sheet = $spreadsheet->getSheet(6); // Define specific sheet
+        $sheet = $spreadsheet->getSheet(6); // Define specific sheet    
     
         // Initialize a row counter
         $rowNumber = 0;
@@ -140,11 +73,13 @@ class SuspectImportController extends Controller
     
             // Add the data to the batch
             $dataBatch[] = [
-                'part_no' => $data[1],
+                'part_no' => (string)$data[1],
                 'lot_no' => (string)$data[4],
-                'invoice_no' => $data[9],
-                'container_no' => $data[10],
+                'box_id' => (string)$data[7],
+                'container_no' => (string)$data[9],
+                'invoice_no' => (string)$data[10],
                 'is_scanned' => '0',
+                'suspect_case_id' => (string)$caseId,
                 'created_by' => session('npk'),
                 'created_at' => date('Y-m-d H:i:s'),
             ];
@@ -177,7 +112,7 @@ class SuspectImportController extends Controller
             }
         }
     
-        return redirect()->route('suspects.index')->with('success', 'Success to import data!');
+        return redirect()->route('suspects.index', ['caseId' => $caseId])->with('success', 'Success to import data!');
     }
 
     public function manualAdd(Request $request)
