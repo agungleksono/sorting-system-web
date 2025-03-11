@@ -3,6 +3,8 @@
 namespace App\Http\Controllers;
 
 use App\Models\User;
+use App\Models\Section;
+use App\Models\Authority;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Validator;
 use Illuminate\Support\Facades\Hash;
@@ -12,7 +14,10 @@ class UserController extends Controller
     public function index()
     {
         $users = User::all();
-        return view('pages.user', compact('users'));
+        $sections = Section::all();
+        $authorities = Authority::all();
+
+        return view('pages.user', compact('users', 'sections', 'authorities'));
     }
 
     public function store(Request $request)
@@ -21,6 +26,8 @@ class UserController extends Controller
             'npk' => 'required|unique:users,npk', 
             'user_name' => 'required|string|max:30', 
             'password' => 'required|string|confirmed', 
+            'section' => 'required|string', 
+            'authority' => 'required|string', 
         ]);
 
         if ($validator->fails()) {
@@ -31,7 +38,11 @@ class UserController extends Controller
             'name' => $request->input('user_name'),
             'npk' => $request->input('npk'),
             'password' => Hash::make($request->input('password')),
-            'is_active' => '1'
+            'section' => $request->input('section'),
+            'authority' => $request->input('authority'),
+            'is_active' => '1',
+            'added_by' => session('npk'),
+            'added_at' => date('Y-m-d H:i:s'),
         ]);
 
         return redirect('/users/management')->with('success', 'User created successfully!');
@@ -48,50 +59,44 @@ class UserController extends Controller
 
     public function update(Request $request, $user_id)
     {
-        // Validate the input data
-        // $request->validate([
-        //     'npk' => 'required|string|max:10',
-        //     'user_name' => 'required|string|max:30',
-        //     'status' => 'required',
-        // ]);
-
         $validator = Validator::make($request->all(), [
             'npk' => 'required|string|max:10',
             'user_name' => 'required|string|max:30',
             'status' => 'required',
+            'section' => 'required',
+            'authority' => 'required',
         ]);
 
         if ($validator->fails()) {
             return redirect('/users/management')->withErrors($validator)->withInput();
         }
-
-        // Find the user by user_id (assuming the primary key is user_id)
-        // $user = User::where('user_id', $user_id)->firstOrFail();
         
         $updated = User::where('user_id', $user_id)
                    ->update([
                         'name' => $request->input('user_name'),
                         'npk' => $request->input('npk'),
-                        'is_active' => $request->input('status')
+                        'is_active' => $request->input('status'),
+                        'section' => $request->input('section'),
+                        'authority' => $request->input('authority'),
+                        'updated_by' => session('npk'),
+                        'updated_at' => date('Y-m-d H:i:s'),
                     ]);
-        
-        // Update the user details
-        // $user->name = $request->input('user_name');
-        // $user->npk = $request->input('npk');
-        // $user->is_active = $request->input('status');
-        // $user->save(); // Save the updated user data
 
         if ($updated) {
             return redirect('/users/management')->with('success', 'User updated successfully!');
         } else {
             return redirect('/users/management')->with('error', 'Failed to update user!');
         }
-
-        // return redirect('/users/management')->with('success', 'User updated successfully!');
     }
 
-    public function deactivate()
+    public function destroy($userId)
     {
-        
+        try {
+            User::where('user_id', $userId)->delete();
+        } catch (\Exception $e) {
+            return redirect()->route('users.index')->with('errors', 'Failed to delete data!' . $e->getMessage());
+        }
+
+        return redirect()->route('users.index')->with('success', 'User deleted successfully!');
     }
 }

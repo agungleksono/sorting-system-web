@@ -47,9 +47,19 @@
                 <td class="text-center">{{ $user->name }}</td>
                 <td class="text-center">{{ $user->is_active == '1' ? 'Active' : 'Non Active' }}</td>
                 <td class="text-center">
-                    <button class="btn btn-success edit-btn" data-id="{{ $user->user_id }}" data-bs-toggle="modal" data-bs-target="#editUserModal">
-                        <span data-feather="edit" class="align-text-bottom"></span>
-                    </button>
+                    <div class="row">
+                        <button class="edit-btn col-auto" data-id="{{ $user->user_id }}" data-bs-toggle="modal" data-bs-target="#editUserModal" style="background: none; border: none; padding: 0;">
+                            <span data-feather="edit" class="align-text-bottom text-success"></span>
+                        </button>
+                        <form method="post" action="{{ route('users.destroy', ['user_id' => $user->user_id]) }}" class="col-auto" onsubmit="return confirmDelete()">
+                            @csrf
+                            @method('DELETE')
+                            <!-- <a href=""><span data-feather="trash-2" class="align-text-bottom text-danger"></span></a> -->
+                            <button type="submit" style="background: none; border: none; padding: 0;">
+                                <span data-feather="trash-2" class="align-text-bottom text-danger"></span>
+                            </button>
+                        </form>
+                    </div>
                 </td>
             </tr>
             @endforeach
@@ -85,6 +95,25 @@
                         <label for="password_confirmation" class="form-label">Retype Password</label>
                         <input type="password" class="form-control" name="password_confirmation" id="password_confirmation">
                     </div>
+                    <div class="mb-3">
+                        <label for="password_confirmation" class="form-label">Section</label>
+                        <select class="form-select" name="section" required>
+                            <option value="" selected disabled>--- Choose Section ---</option>
+                            @foreach ($sections as $section)
+                            <option value="{{ $section->id }}">{{ $section->section }}</option>
+                            @endforeach
+                        </select>
+                    </div>
+                    <div class="mb-3">
+                        <label for="password_confirmation" class="form-label">Authority</label>
+                        <select class="form-select" name="authority" required>
+                            <option value="" selected disabled>--- Choose Authority ---</option>
+                            @foreach ($authorities as $authority)
+                            <option value="{{ $authority->id }}">{{ $authority->authority }}</option>
+                            @endforeach
+                        </select>
+                    </div>
+                    
                     <button type="submit" class="btn btn-primary">Submit</button>
                 </form>
             </div>
@@ -124,6 +153,25 @@
                             <option value="0">Non Active</option>
                         </select>
                     </div>
+                    <div class="mb-3">
+                        <label for="password_confirmation" class="form-label">Section</label>
+                        <select class="form-select" name="section" id="editSection" required>
+                            <option value="" selected disabled>--- Choose Section ---</option>
+                            @foreach ($sections as $section)
+                            <option value="{{ $section->id }}">{{ $section->section }}</option>
+                            @endforeach
+                        </select>
+                    </div>
+                    <div class="mb-3">
+                        <label for="password_confirmation" class="form-label">Authority</label>
+                        <select class="form-select" name="authority" id="editAuthority" required>
+                            <option value="" selected disabled>--- Choose Authority ---</option>
+                            @foreach ($authorities as $authority)
+                            <option value="{{ $authority->id }}">{{ $authority->authority }}</option>
+                            @endforeach
+                        </select>
+                    </div>
+
                     <button type="submit" class="btn btn-primary">Submit</button>
                 </form>
             </div>
@@ -153,6 +201,8 @@
                         $('#editNpk').val(data.npk);
                         $('#editName').val(data.name);
                         $('#editStatus').val(data.is_active);
+                        $('#editSection').val(data.section);
+                        $('#editAuthority').val(data.authority);
 
                         // Update form action with the correct user_id
                         var formAction = '{{ route("user.update", ["user_id" => ":user_id"]) }}';
@@ -165,5 +215,10 @@
                 });
             });
         });
+
+        function confirmDelete() {
+            // Show a confirmation alert before submitting the form
+            return confirm('Are you sure you want to delete this user?');
+        }
     </script>
 @endpush

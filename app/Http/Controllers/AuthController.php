@@ -90,6 +90,8 @@ class AuthController extends Controller
             session(['user_id' => $user->user_id]);
             session(['name' => $user->name]);
             session(['npk' => $user->npk]);
+            session(['section' => $user->section]);
+            session(['authority' => $user->authority]);
 
             return redirect()->route('suspects.index');
         }
