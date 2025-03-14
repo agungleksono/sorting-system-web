@@ -56,7 +56,7 @@
                             <a href="{{ route('cases.edit', ['suspect_case_id' => $case->suspect_case_id]) }}" class="me col-auto">
                                 <span data-feather="edit" class="align-text-bottom text-success"></span>
                             </a>
-                            <form method="post" action="{{ route('cases.destroy', ['suspect_case_id' => $case->suspect_case_id]) }}" class="col-auto">
+                            <form method="post" action="{{ route('cases.destroy', ['suspect_case_id' => $case->suspect_case_id]) }}" class="col-auto" onsubmit="return confirmDelete()">
                                 @csrf
                                 @method('DELETE')
                                 <!-- <a href=""><span data-feather="trash-2" class="align-text-bottom text-danger"></span></a> -->
@@ -85,5 +85,10 @@
             },
             pageLength: 20,
         });
+
+        function confirmDelete() {
+            // Show a confirmation alert before submitting the form
+            return confirm('Are you sure you want to delete this case?');
+        }
     </script>
 @endpush

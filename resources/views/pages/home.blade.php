@@ -78,7 +78,7 @@
                     <button type="submit" class="btn btn-import fw-semibold">Import</button>
                 </div>
             </form>
-            <div class="form-text"><i>*) Pastikan format excel yang di upload sesuai dengan format sistem.</i></div>
+            <div class="form-text"><i>*) Pastikan format excel yang di upload sesuai dengan format <a href="{{ route('suspects.download-file') }}">berikut</a>.</i></div>
         </div>
         <!-- <div>
             <a class="btn btn-info" href="#" role="button">
@@ -122,13 +122,13 @@
         <div class="col-md-3">
             <div class="shadow p-3 mb-3 bg-info rounded">
                 <h4 class="text-center mt-2">Part Di Scan</h4>
-                <h1 class="my-3 text-center fw-bolder">0</h1>
+                <h1 class="my-3 text-center fw-bolder">{{ request()->has('caseId') ? $scanProgress->current_progress : '0' }}</h1>
             </div>
         </div>
         <div class="col-md-3">
             <div class="shadow p-3 mb-3 bg-warning rounded">
                 <h4 class="text-center mt-2">Part Belum Di Scan</h4>
-                <h1 class="my-3 text-center fw-bolder">0</h1>
+                <h1 class="my-3 text-center fw-bolder">{{ request()->has('caseId') ? $scanProgress->max_progress - $scanProgress->current_progress : '0' }}</h1>
             </div>
         </div>
     </div>
@@ -142,6 +142,7 @@
                 <th class="text-center">Box Id</th>
                 <th class="text-center">Invoice No</th>
                 <th class="text-center">Container No</th>
+                <th class="text-center">Quantity</th>
                 <th class="text-center">Judgment</th>
                 <th class="text-center">Scan Time</th>
                 <th class="text-center">Scan By</th>
@@ -155,8 +156,9 @@
                     <td class="text-center">{{ $suspect['part_no'] }}</td>
                     <td class="text-center">{{ $suspect['lot_no'] }}</td>
                     <td class="text-center">{{ $suspect['box_id'] }}</td>
-                    <td class="text-center">{{ $suspect['container_no'] }}</td>
                     <td class="text-center">{{ $suspect['invoice_no'] }}</td>
+                    <td class="text-center">{{ $suspect['container_no'] }}</td>
+                    <td class="text-center">{{ $suspect['quantity'] }}</td>
                     <td class="text-center">{!! $suspect['is_scanned'] ? '<span class="badge rounded-pill text-bg-danger">NG</span>' : '<span class="badge rounded-pill text-bg-secondary">Not Scanned</span>' !!}</td>
                     <td>{{ $suspect['scanned_at'] }}</td>
                     <td>{{ $suspect['scanned_by'] }}</td>

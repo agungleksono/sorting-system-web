@@ -8,6 +8,7 @@ use App\Models\Suspect;
 use App\Models\SuspectCase;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Validator;
+use Illuminate\Support\Facades\File;
 
 class SuspectImportController extends Controller
 {
@@ -17,8 +18,15 @@ class SuspectImportController extends Controller
         
         $cases = SuspectCase::all();
         $suspects = Suspect::where('suspect_case_id', $caseId)->get();
+        $scanProgress = DB::table('suspects')
+                            ->select(
+                                DB::raw("SUM(CASE WHEN is_scanned = '1' THEN 1 ELSE 0 END) AS current_progress"),
+                                DB::raw('COUNT(suspect_case_id) AS max_progress')
+                            )
+                            ->where('suspect_case_id', $caseId)
+                            ->first();
 
-        return view('pages.home', compact('suspects', 'cases'));
+        return view('pages.home', compact('suspects', 'cases', 'scanProgress'));
     }
 
     public function import(Request $request)
@@ -41,7 +49,7 @@ class SuspectImportController extends Controller
         // $sheet = $spreadsheet->getActiveSheet();
     
         // Get the specific worksheet (can be adjusted)
-        $sheet = $spreadsheet->getSheet(6); // Define specific sheet    
+        $sheet = $spreadsheet->getSheet(0); // Define specific sheet    
     
         // Initialize a row counter
         $rowNumber = 0;
@@ -78,6 +86,7 @@ class SuspectImportController extends Controller
                 'box_id' => (string)$data[7],
                 'container_no' => (string)$data[9],
                 'invoice_no' => (string)$data[10],
+                'quantity' => (string)$data[5],
                 'is_scanned' => '0',
                 'suspect_case_id' => (string)$caseId,
                 'created_by' => session('npk'),
@@ -136,5 +145,16 @@ class SuspectImportController extends Controller
         ]);
 
         return redirect()->route('suspects.index')->with('success', 'Suspect Part added successfully!');
+    }
+
+    public function downloadSample()
+    {
+        $filePath = public_path('file/sample.xlsx');
+
+        if (File::exists($filePath)) {
+            return response()->download($filePath);
+        } else {
+            abort(404, 'File not found');
+        }
     }
 }

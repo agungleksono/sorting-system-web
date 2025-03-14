@@ -42,6 +42,7 @@ Route::middleware(['auth.web'])->group(function () {
     Route::get('/suspects', [SuspectImportController::class, 'index'])->name('suspects.index');
     Route::post('/suspects/import', [SuspectImportController::class, 'import'])->name('suspects.import');
     Route::post('/suspect/manual-add', [SuspectImportController::class, 'manualAdd'])->name('suspects.manual-add');
+    Route::get('/suspect/download-sample', [SuspectImportController::class, 'downloadSample'])->name('suspects.download-file');
 
     // Suspect Case Routes
     Route::get('/cases', [SuspectCaseController::class, 'index'])->name('cases.index');
@@ -54,10 +55,11 @@ Route::middleware(['auth.web'])->group(function () {
     Route::get('/scans', [SuspectController::class, 'dataScanned']);
 
     // User management route
-    Route::get('/users/management', [UserController::class, 'index']);
+    Route::get('/users/management', [UserController::class, 'index'])->name('users.index');
     Route::get('/users/{id}/edit', [UserController::class, 'edit']);
     Route::put('/users/{user_id}', [UserController::class, 'update'])->name('user.update');
     Route::post('/users', [UserController::class, 'store']);
+    Route::delete('/users/{user_id}', [UserController::class, 'destroy'])->name('users.destroy');
 });
 
 Route::get('/print', function () {

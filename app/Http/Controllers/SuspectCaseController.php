@@ -80,13 +80,17 @@ class SuspectCaseController extends Controller
             return redirect('/cases/create')->withErrors($validator)->withInput();
         }
 
+        if (!empty($request->input('qrContent')) && ($request->input('qrLength') != strlen($request->input('qrContent')))) {
+            return redirect('/cases/create')->withErrors('Panjang karakter QR tidak sesuai dengan hasil scan')->withInput();
+        }
+
         $countSuspectCase = SuspectCase::count();
         $suspectCaseId = 'CASE' . str_pad($countSuspectCase + 1, 4, "0", STR_PAD_LEFT);
 
         $suspectCase = SuspectCase::create([
             'suspect_case_id' => $suspectCaseId,
             'title' => $request->input('title'),
-            'scan_parameter_id' => $request->input('scanParameter'),
+            'scan_parameter_code' => $request->input('scanParameter'),
             'scan_type_id' => $request->input('scanType'),
             'qr_length' => $request->input('qrLength'),
             // 'string_start_index' => $request->input('stringStartIndex'),

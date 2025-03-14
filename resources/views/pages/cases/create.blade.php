@@ -4,7 +4,7 @@
 
 @section('content')
 <div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-3 border-bottom">
-    <h1 class="h3">Scanning Data</h1>
+    <h1 class="h3">New Case</h1>
 </div>
 
 {{-- Success Alert --}}
@@ -80,7 +80,7 @@
             const qrContent = document.getElementById('qrContent');
 
             qrContent.addEventListener('keydown', (e) => {
-                if (e.key === 'Enter') {
+                if (e.key === 'Enter' || e.key === 'Tab') {
                     qrLength.value = qrContent.value.length;
                 }
             })
