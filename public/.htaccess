@@ -4,6 +4,7 @@
     </IfModule>
 
     RewriteEngine On
+    RewriteBase /sorting-system
 
     # Handle Authorization Header
     RewriteCond %{HTTP:Authorization} .
