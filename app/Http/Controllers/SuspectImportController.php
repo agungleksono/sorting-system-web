@@ -16,7 +16,7 @@ class SuspectImportController extends Controller
     {
         $caseId = $request->query('caseId');
         
-        $cases = SuspectCase::all();
+        $cases = SuspectCase::where('is_closed', '0')->get();
         $suspects = Suspect::where('suspect_case_id', $caseId)->get();
         $scanProgress = DB::table('suspects')
                             ->select(

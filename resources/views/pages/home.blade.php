@@ -59,7 +59,7 @@
     <div class="shadow p-3 bg-body rounded">
         <h5 class="mb-2 py-1">Import Suspect Part</h5>
         <a href="{{ route('cases.create') }}">Add new case.</a>
-        <div class="my-3 col-md-5">
+        <div class="my-3 col-md-6">
             <!-- <label for="formFile" class="form-label fw-semibold">Import Suspect Part</label> -->
             <form action="{{ route('suspects.import') }}" method="POST" class="row g-3" enctype="multipart/form-data">
                 @csrf
@@ -122,13 +122,13 @@
         <div class="col-md-3">
             <div class="shadow p-3 mb-3 bg-info rounded">
                 <h4 class="text-center mt-2">Part Di Scan</h4>
-                <h1 class="my-3 text-center fw-bolder">{{ request()->has('caseId') ? $scanProgress->current_progress : '0' }}</h1>
+                <h1 class="my-3 text-center fw-bolder">{{ $scanProgress->current_progress ? $scanProgress->current_progress : '0' }}</h1>
             </div>
         </div>
         <div class="col-md-3">
             <div class="shadow p-3 mb-3 bg-warning rounded">
                 <h4 class="text-center mt-2">Part Belum Di Scan</h4>
-                <h1 class="my-3 text-center fw-bolder">{{ request()->has('caseId') ? $scanProgress->max_progress - $scanProgress->current_progress : '0' }}</h1>
+                <h1 class="my-3 text-center fw-bolder">{{ $scanProgress->current_progress ? $scanProgress->max_progress - $scanProgress->current_progress : '0' }}</h1>
             </div>
         </div>
     </div>

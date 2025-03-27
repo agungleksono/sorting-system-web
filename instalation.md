@@ -7,7 +7,7 @@
 
 #### Step Instalation
 
-Note: lakukan step 2 & 3 ketika project laravel di dapat dari hasil clone git. Jika project laravel didapat dengan copy paste file zip/rar, lewati step 2 & 3.
+Note: lakukan step 2 ketika project laravel di dapat dari hasil clone git. Jika project laravel didapat dengan copy paste file zip/rar, lewati step 2 & 3.
 
 1.  Tempatkan laravel project di folder htdocs. Install composer terlebih dahulu, jika composer belum diinstall.
 2.  Run command `composer install`

@@ -55,8 +55,6 @@ class ScanController extends Controller
         elseif ($scanParameter == 'INVOICE_NO') $listPart = $suspects->pluck('invoice_no')->toArray();
         elseif ($scanParameter == 'BOX_NO') $listPart = $suspects->pluck('box_id')->toArray();
 
-        // return response()->json($listPart);
-
         $foundedLot = null;
         $judgment = 'ok';
         $isSuspectFound = false;
@@ -218,15 +216,10 @@ class ScanController extends Controller
     //     return ResponseFormatter::success($responseData, 'Scanning success');
     // }
 
+    // need to check this function is used or not
     public function checkPrintQueue()
     {
-        // $printQueue = false;
         $queue = PrintQueue::all();
-
-        // if (count($queue) >= 1)
-        // {
-        //     $printQueue = true;
-        // }
 
         $printQueue = count($queue) >= 1 ? true : false;
 
@@ -269,5 +262,119 @@ class ScanController extends Controller
         ];
 
         return ResponseFormatter::success($response, 'Success');
+    }
+
+
+    public function scanMultiBox(Request $request)
+    {
+        // $query = "SELECT TOP 1 * FROM suspects s1 WHERE s1.lot_no = '41260058' AND (s1.progress IS NOT NULL OR NOT EXISTS (SELECT 1 FROM suspects s2 WHERE s2.lot_no = '41260058' AND s2.progress IS NOT NULL));";
+
+        $validator = Validator::make($request->all(), [
+            'qr_code' => 'required',
+            'scan_parameter' => 'required',
+            'suspect_case_id' => 'required',
+            'scanned_by' => 'required',
+        ]);
+
+        if ($validator->fails()) {
+            return ResponseFormatter::error(null, $validator->errors()->first(), 400);
+        }
+
+        // $partNo = $request->input('part_no');
+        $scanParameter = $request->input('scan_parameter');
+        $qrCode = $request->input('qr_code');
+        $scannedBy = $request->input('scanned_by');
+        $suspectCaseId = $request->input('suspect_case_id');
+
+        if ($this->isQrScanned($qrCode)) {
+            return ResponseFormatter::error(null, 'QR sudah di scan.', 422);
+        }
+
+        $suspects = Suspect::select('suspect_id', 'part_no', 'lot_no', 'box_id', 'invoice_no')
+                            ->where([
+                                'is_scanned' => '0',
+                                'suspect_case_id' => $suspectCaseId,
+                            ])
+                            // ->where('is_scanned', '0')
+                            ->get();
+
+        
+
+        // $listPart = null;
+
+        if ($scanParameter == 'PART_NO') {
+            $whereClause = 'part_no';
+            // $listPart = $suspects->pluck('part_no')->toArray();
+        } elseif ($scanParameter == 'LOT_NO') {
+            $whereClause = 'lot_no';
+            // $listPart = $suspects->pluck('lot_no')->toArray();
+        } elseif ($scanParameter == 'INVOICE_NO') {
+            $whereClause = 'invoice_no';
+            // $listPart = $suspects->pluck('invoice_no')->toArray();
+        } elseif ($scanParameter == 'BOX_NO') {
+            $whereClause = 'box_id';
+            // $listPart = $suspects->pluck('box_id')->toArray();
+        }
+
+        $listPart = $suspects->pluck($whereClause)->toArray();
+
+        $foundedLot = null;
+        $judgment = 'ok';
+        $isSuspectFound = false;
+        $foundedData = [];
+        // return response()->json(strpos("2jwe 23j41260090llndk", "41260090") !== false);
+
+        foreach ($listPart as $index => $value) {
+            if (strpos($qrCode, $value) !== false) {
+                $judgment = 'ng';
+                $isSuspectFound = true;
+
+                $foundedData = [
+                    'suspect_id' => $suspects[$index]->suspect_id,
+                    'part_no' => $suspects[$index]->part_no,
+                    'lot_no' => $suspects[$index]->lot_no,
+                    'box_id' => $suspects[$index]->box_id,
+                    'invoice_no' => $suspects[$index]->invoice_no,
+                    'search_value' => $value,
+                ];
+
+                break;
+            }
+        }
+
+
+    //     $result = Suspect::where('lot_no', '41260058')
+    // ->where(function($query) {
+    //     $query->whereNotNull('progress')
+    //           ->orWhereNotExists(function($subQuery) {
+    //               $subQuery->select(DB::raw('1'))
+    //                        ->from('suspects as s2')
+    //                        ->whereRaw('s2.lot_no = suspects.lot_no')
+    //                        ->whereNotNull('s2.progress');
+    //           });
+    // })
+    // ->limit(1)
+    // ->first();
+
+    // $result = DB::table('suspects as s1')
+    // ->select('*')
+    // ->where('s1.lot_no', '41260058')
+    // ->where(function($query) {
+    //     $query->whereNotNull('s1.progress')
+    //           ->orWhereNotExists(function($subQuery) {
+    //               $subQuery->select(DB::raw('1'))
+    //                        ->from('suspects as s2')
+    //                        ->whereRaw('s2.lot_no = s1.lot_no')
+    //                        ->whereNotNull('s2.progress');
+    //           });
+    // })
+    // ->limit(1)  // Equivalent to TOP 1 in SQL
+    // ->first(); // Get the first result
+
+        $responseData = [
+            'is_suspect' => $isSuspectFound,
+            'part_no' => $isSuspectFound ? $foundedData['part_no'] : '-',
+            'search_value' => $isSuspectFound ? $foundedData['search_value'] : '-',
+        ];
     }
 }
