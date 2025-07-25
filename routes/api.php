@@ -5,6 +5,7 @@ use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\AuthController;
 use App\Http\Controllers\ScanController;
 use App\Http\Controllers\SuspectCaseController;
+use App\Http\Controllers\SuspectController;
 
 /*
 |--------------------------------------------------------------------------
@@ -23,17 +24,17 @@ Route::middleware('auth:api')->get('/user', function (Request $request) {
 
 
 Route::prefix('v1')->group(function () {
-    // Route::post('/auth/login', [AuthController::class, 'loginApi']);
-
     Route::middleware('auth.api')->group(function () {
         Route::post('/auth/login', [AuthController::class, 'loginApi']);
 
         Route::post('/scan', [ScanController::class, 'scan']);
         Route::post('/scan/multi-box', [ScanController::class, 'scanMultiBox']);
-        Route::get('/scan/part-no', [ScanController::class, 'getListPartNo']);
+        // Route::get('/scan/part-no', [ScanController::class, 'getListPartNo']);
         Route::get('/scan/progress/{suspect_case_id}', [ScanController::class, 'countScanProgress']);
         Route::post('/print-queue', [ScanController::class, 'checkPrintQueue']);
+        Route::post('/reprint', [ScanController::class, 'reprint']);
 
         Route::get('/cases', [SuspectCaseController::class, 'indexApi']);
+        Route::post('/suspects/list', [SuspectController::class, 'suspectList']);
     });
 });
