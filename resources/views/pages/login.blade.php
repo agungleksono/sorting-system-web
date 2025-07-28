@@ -9,7 +9,7 @@
         <title>Sorting System - Login</title>
 
         <link rel="canonical" href="https://getbootstrap.com/docs/5.2/examples/sign-in/">
-        <link rel="stylesheet" href="/bootstrap/css/bootstrap.min.css">
+        <link rel="stylesheet" href="{{ url('/bootstrap/css/bootstrap.min.css') }}">
 
         <style>
         .bd-placeholder-img {
@@ -65,13 +65,13 @@
         </style>
 
         <!-- Custom styles for this template -->
-        <link href="/login/signin.css" rel="stylesheet">
+        <link href="{{ url('/login/signin.css') }}" rel="stylesheet">
     </head>
 
     <body class="text-center">
     
         <main class="form-signin w-100 m-auto">
-            <img class="mb-1" src="/images/denso.png" alt="" width="250">
+            <img class="mb-1" src="{{ url('/images/denso.png') }}" alt="" width="250">
             <h1 class="h3 mb-3 fw-bolder">Sorting System</h1>
             <h1 class="h3 mb-3 fw-normal">Login</h1>
 
@@ -95,10 +95,10 @@
                 </div>
 
                 <button class="w-100 btn btn-lg btn-primary mt-3" type="submit">Login</button>
-                <p class="mt-4 mb-3 text-muted">&copy; 2025</p>
+                <p class="mt-4 mb-3 text-muted">&copy; 2025. Version 1.1</p>
             </form>
         </main>
 
-        <script src="/bootstrap/js/bootstrap.min.js"></script>
+        <script src="{{ url('/bootstrap/js/bootstrap.min.js') }}"></script>
     </body>
 </html>
