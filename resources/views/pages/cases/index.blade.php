@@ -35,6 +35,7 @@
                 <th class="text-center">No.</th>
                 <th class="text-center">Case</th>
                 <th class="text-center">Progress</th>
+                <th class="text-center">Traced By</th>
                 <th class="text-center">Status</th>
                 <th class="text-center">Issued By</th>
                 <th class="text-center">Register Date</th>
@@ -48,6 +49,7 @@
                     <td class="text-center">{{ $loop->iteration }}</td>
                     <td class="text-center">{{ $case->title }}</td>
                     <td class="text-center"><span class="badge rounded-pill text-bg-primary">{{ $case->current_progress . ' / ' . $case->max_progress }}</span></td>
+                    <td class="text-center">{{ $case->scan_parameter_code }}</td>
                     <td class="text-center">{{ $case->is_closed ? 'Closed' : 'Open' }}</td>
                     <td class="text-center">{{ $case->created_by }}</td>
                     <td class="text-center">{{ date('d-m-Y', strtotime($case->created_at)) }}</td>
