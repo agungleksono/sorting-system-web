@@ -1,9 +1,9 @@
-<link rel="stylesheet" href="/bootstrap/css/bootstrap.min.css">
+<link rel="stylesheet" href="{{ url('/bootstrap/css/bootstrap.min.css') }}">
 
 <!-- Dashboard Style -->
 <link rel="canonical" href="https://getbootstrap.com/docs/5.2/examples/dashboard/">
 <!-- Custom styles for this template -->
-<link href="/dashboard/dashboard.css" rel="stylesheet">
+<link href="{{ url('/dashboard/dashboard.css') }}" rel="stylesheet">
 
 <!-- Datatable -->
 <link rel="stylesheet" href="https://cdn.datatables.net/2.2.1/css/dataTables.dataTables.css" />
