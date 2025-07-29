@@ -137,14 +137,18 @@ class SuspectImportController extends Controller
         $suspect = Suspect::create([
             'part_no' => $request->input('part_no'),
             'lot_no' => $request->input('lot_no'),
+            'box_id' => $request->input('box_id'),
             'invoice_no' => $request->input('invoice_no'),
             'container_no' => $request->input('container_no'),
+            'quantity' => $request->input('quantity'),
+            'suspect_case_id' => $request->input('suspect_case_id'),
             'is_scanned' => '0',
             'created_by' => session('npk'),
             'created_at' => date('Y-m-d H:i:s'),
         ]);
 
-        return redirect()->route('suspects.index')->with('success', 'Suspect Part added successfully!');
+        // return redirect()->route('suspects.index')->with('success', 'Suspect Part added successfully!');
+        return redirect()->route('suspects.index', ['caseId' => $request->input('suspect_case_id')])->with('success', 'Suspect Part added successfully!');
     }
 
     public function downloadSample()

@@ -7,6 +7,7 @@ use Maatwebsite\Excel\Facades\Excel;
 use App\Imports\SuspectsImport;
 use App\Models\Suspect;
 use Illuminate\Support\Facades\DB;
+use App\Helpers\ResponseFormatter;
 
 class SuspectController extends Controller
 {
@@ -118,5 +119,16 @@ class SuspectController extends Controller
 
         // $suspects = collect();
         return view('pages.scan', compact('suspects'));
+    }
+
+    public function suspectList(Request $request)
+    {
+        try {
+            $suspects = Suspect::where('suspect_case_id', $request->input('suspect_case_id'))->get();
+
+            return ResponseFormatter::success($suspects, 'Success fetch data list part.');
+        } catch (\Throwable $th) {
+            return ResponseFormatter::error(null, 'Failed fetch list part.', 400);
+        }
     }
 }
