@@ -24,10 +24,6 @@
 
 <div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-3 border-bottom">
     <h1 class="h3">Suspect</h1>
-    <!-- <a class="btn btn-new-case me-3 fw-semibold" href="{{ route('cases.create') }}" role="button">
-        <span data-feather="plus" class="align-text-bottom"></span> 
-        New Case
-    </a> -->
 </div>
 
 {{-- Success Alert --}}
@@ -47,15 +43,7 @@
 @endif
 
 
-
 <div class="container-fluid mt-4">
-    <!-- <div class="shadow-sm p-3 mb-5 bg-body rounded">
-        <a class="btn btn-info" href="#" role="button">
-            <span data-feather="plus" class="align-text-bottom"></span> 
-            New Case
-        </a>
-    </div> -->
-
     <div class="shadow p-3 bg-body rounded">
         <h5 class="mb-2 py-1">Import Suspect Part</h5>
         <a href="{{ route('cases.create') }}">Add new case.</a>
@@ -80,12 +68,6 @@
             </form>
             <div class="form-text"><i>*) Pastikan format excel yang di upload sesuai dengan format <a href="{{ route('suspects.download-file') }}">berikut</a>.</i></div>
         </div>
-        <!-- <div>
-            <a class="btn btn-info" href="#" role="button">
-                <span data-feather="plus" class="align-text-bottom"></span> 
-                New Case
-            </a>
-        </div> -->
         
         <div class="">
             <button type="submit" class="btn btn-add-manual btn-sm fw-semibold" data-bs-toggle="modal" data-bs-target="#addSuspectModal">
@@ -118,24 +100,28 @@
             </div>
         </form>
     </div>
-    <div class="row d-flex justify-content-center">
+    <div class="row d-flex justify-content-center mt-4">
         <div class="col-md-3">
             <div class="shadow p-3 mb-3 bg-info rounded">
-                <h4 class="text-center mt-2">Part Di Scan</h4>
+                <!-- <h4 class="text-center mt-2">Part Di Scan</h4> -->
+                <h4 class="text-center mt-2">Suspects Found</h4>
                 <h1 class="my-3 text-center fw-bolder">{{ $scanProgress->current_progress ? $scanProgress->current_progress : '0' }}</h1>
             </div>
         </div>
         <div class="col-md-3">
             <div class="shadow p-3 mb-3 bg-warning rounded">
-                <h4 class="text-center mt-2">Part Belum Di Scan</h4>
-                <h1 class="my-3 text-center fw-bolder">{{ $scanProgress->current_progress ? $scanProgress->max_progress - $scanProgress->current_progress : '0' }}</h1>
+                <!-- <h4 class="text-center mt-2">Part Belum Di Scan</h4> -->
+                <h4 class="text-center mt-2">Suspects Remain</h4>
+                <h1 class="my-3 text-center fw-bolder">{{ $scanProgress->current_progress ? $scanProgress->max_progress - $scanProgress->current_progress : $scanProgress->max_progress }}</h1>
             </div>
         </div>
     </div>
-
+    
+    <button type="button" class="btn btn-danger btn-sm"><span data-feather="trash-2" class="align-text-bottom me-1"></span> Delete Item Suspect</button>
     <table id="suspectTable" class="table table-striped" style="width:100%">
         <thead>
             <tr>
+                <th class="text-center"><input type="checkbox" id="selectAll"></th>
                 <th class="text-center">No.</th>
                 <th class="text-center">Part No.</th>
                 <th class="text-center">Lot No</th>
@@ -152,6 +138,9 @@
             @if (isset($suspects))
                 @foreach($suspects as $suspect)
                 <tr>
+                    <td class="text-center">
+                        <input type="checkbox" name="selected[]" value="{{ $suspect['suspect_id'] }}">
+                    </td>
                     <td class="text-center">{{ $loop->iteration }}</td>
                     <td class="text-center">{{ $suspect['part_no'] }}</td>
                     <td class="text-center">{{ $suspect['lot_no'] }}</td>
@@ -189,12 +178,29 @@
                         <input type="text" class="form-control" name="lot_no" id="lotNo">
                     </div>
                     <div class="mb-3">
+                        <label for="boxId" class="form-label">Box Id</label>
+                        <input type="text" class="form-control" name="box_id" id="boxId">
+                    </div>
+                    <div class="mb-3">
                         <label for="containerNo" class="form-label">Container No.</label>
                         <input type="text" class="form-control" name="container_no" id="containerNo">
                     </div>
                     <div class="mb-3">
                         <label for="invoiceNo" class="form-label">Invoice No.</label>
                         <input type="text" class="form-control" name="invoice_no" id="invoiceNo">
+                    </div>
+                    <div class="mb-3">
+                        <label for="quantity" class="form-label">Quantity</label>
+                        <input type="text" class="form-control" name="quantity" id="quantity">
+                    </div>
+                    <div class="mb-3">
+                        <label for="caseModal" class="form-label">Case</label>
+                        <select class="form-select" id="caseModal" name="suspect_case_id" required>
+                            <option value="" selected disabled>--- Pilih Case ---</option>
+                            @foreach ($cases as $case)
+                                <option value="{{ $case->suspect_case_id }}">{{ $case->title }}</option>
+                            @endforeach
+                        </select>
                     </div>
                     <button type="submit" class="btn btn-primary">Submit</button>
                 </form>
@@ -217,6 +223,20 @@
                 }
             },
             pageLength: 20,
+            columnDefs: [
+                { orderable: false, targets: 0 } // Disable sorting on the checkbox column
+            ]
+        });
+
+        // Prevent sorting when clicking the checkbox in the header
+        document.getElementById('selectAll').addEventListener('click', function (event) {
+            event.stopPropagation(); // Prevent sort trigger
+        });
+
+        // Handle Select All checkbox toggle
+        document.getElementById('selectAll').addEventListener('change', function () {
+            let checkboxes = document.querySelectorAll('input[name="selected[]"]');
+            checkboxes.forEach(cb => cb.checked = this.checked);
         });
     </script>
 @endpush
