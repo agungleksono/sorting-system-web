@@ -7,7 +7,7 @@
 
 #### Step Instalation
 
-Note: lakukan step 2 ketika project laravel di dapat dari hasil clone git. Jika project laravel didapat dengan copy paste file zip/rar, lewati step 2 & 3.
+Note: lakukan step 2 ketika project laravel di dapat dari hasil clone git. Jika project laravel didapat dengan copy paste file zip/rar, lewati step 2 dan 4.
 
 1.  Tempatkan laravel project di folder htdocs. Install composer terlebih dahulu, jika composer belum diinstall.
 2.  Run command `composer install`
@@ -29,20 +29,19 @@ Note: lakukan step 2 ketika project laravel di dapat dari hasil clone git. Jika 
     Sesuaikan ServerName dengan IP address server.
 
         <VirtualHost *:80>
-           ServerAdmin webmaster@localhost
-           ServerName 127.0.0.1
-           DocumentRoot "C:\Apache24\htdocs\sorting-system\public"
-           Alias /sorting-system "C:\Apache24\htdocs\sorting-system\public"
+            ServerAdmin webmaster@localhost
+            ServerName 192.168.13.151
+            Alias /sorting-system "C:\Apache24\htdocs\sorting-system\public"
 
-           <Directory "C:\Apache24\htdocs\sorting-system\public">
-        	      Options Indexes FollowSymLinks
-        	      AllowOverride All
-        	      Require all granted
-           </Directory>
+            <Directory "C:\Apache24\htdocs\sorting-system\public">
+                Options Indexes FollowSymLinks
+                AllowOverride All
+                Require all granted
+            </Directory>
 
             ErrorLog "logs/system-sorting.log"
             CustomLog "logs/system-sorting.log" common
-         </VirtualHost>
+        </VirtualHost>
 
 6.  Buka file `C:/Apache24/conf/httpd.conf`.
     Uncomment perintah berikut
@@ -52,3 +51,6 @@ Note: lakukan step 2 ketika project laravel di dapat dari hasil clone git. Jika 
     `RewriteBase /sorting-system`
 8.  Sesuaikan file .env. Set IP address sesuai dengan IP address server
     APP_URL=http://127.0.0.1/sorting-system
+9.  Jalankan command berikut
+    `php artisan optimize:clear`
+10. Import sql script to generate table in SORTING_SYSTEM database.
