@@ -12,6 +12,6 @@ class Suspect extends Model
     public $timestamps = false;
 
     protected $fillable = [
-        'suspect_id', 'part_no', 'lot_no', 'box_id', 'container_no', 'invoice_no', 'suspect_case_id', 'created_by', 'created_at', 'updated_by', 'updated_at', 'scanned_by', 'scanned_at',
+        'suspect_id', 'part_no', 'lot_no', 'box_id', 'container_no', 'invoice_no', 'quantity', 'is_scanned', 'suspect_case_id', 'created_by', 'created_at', 'updated_by', 'updated_at', 'scanned_by', 'scanned_at', 'progress_quantity',
     ];
 }

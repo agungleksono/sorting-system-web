@@ -12,6 +12,6 @@ class PrintQueue extends Model
     public $timestamps = false;
     
     protected $fillable = [
-        'id', 'part_no', 'lot_no', 'invoice_no', 'judgment', 'status', 'created_by', 'created_at',
+        'id', 'part_no', 'lot_no', 'invoice_no', 'box_id', 'scan_parameter', 'judgment', 'status', 'created_by', 'created_at',
     ];
 }
