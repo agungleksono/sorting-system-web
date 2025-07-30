@@ -117,9 +117,12 @@
         </div>
     </div>
 
+    <button type="submit" class="btn btn-danger btn-sm" data-bs-toggle="modal" data-bs-target="#deleteSuspectModal">
+            <span data-feather="trash-2" class="align-text-bottom me-1"></span>
+            Delete Item Suspect
+    </button>
     <form id="suspectForm" method="POST" action="{{ route('suspects.delete') }}">
         @csrf
-        <button type="submit" form="suspectForm" class="btn btn-danger btn-sm"><span data-feather="trash-2" class="align-text-bottom me-1"></span> Delete Item Suspect</button>
         @if(request()->has('caseId'))
             <input type="text" class="invisible" name="caseId" value="{{ request()->input('caseId') }}">
         @endif
@@ -214,6 +217,25 @@
             </div>
             <div class="modal-footer">
                 <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Delete Suspect Modal -->
+<div class="modal fade" id="deleteSuspectModal" tabindex="-1" aria-labelledby="deleteSuspectModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h1 class="modal-title fs-5" id="deleteSuspectModalLabel">Delete Suspect Part</h1>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <label>Are you sure you want to delete suspect part?</label>
+                <div>
+                    <button type="button" class="btn btn-secondary " data-bs-dismiss="modal">Cancel</button>
+                    <button type="submit" form="suspectForm" class="btn btn-danger btn-smbtn-primary">Delete</button>
+                </div>
             </div>
         </div>
     </div>
