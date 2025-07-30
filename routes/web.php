@@ -37,6 +37,7 @@ Route::middleware(['auth.web'])->group(function () {
     Route::post('/suspects/import', [SuspectImportController::class, 'import'])->name('suspects.import');
     Route::post('/suspect/manual-add', [SuspectImportController::class, 'manualAdd'])->name('suspects.manual-add');
     Route::get('/suspect/download-sample', [SuspectImportController::class, 'downloadSample'])->name('suspects.download-file');
+    Route::post('/suspects', [SuspectImportController::class, 'delete'])->name('suspects.delete');
 
     // Suspect Case Routes
     Route::get('/cases', [SuspectCaseController::class, 'index'])->name('cases.index');

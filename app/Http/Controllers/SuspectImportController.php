@@ -161,4 +161,24 @@ class SuspectImportController extends Controller
             abort(404, 'File not found');
         }
     }
+
+    public function delete(Request $request)
+    {
+        try {
+            DB::beginTransaction();
+
+            $selectedIds = $request->input('selected');
+            if (!empty($selectedIds)) {
+                foreach ($selectedIds as $selectedId) {
+                    Suspect::where('suspect_id', $selectedId)->delete();
+                }
+            }
+            
+            DB::commit();
+        } catch (\Exception $e) {
+            DB::rollBack();
+            return redirect()->route('suspects.index', ['caseId' => $request->has('caseId') ? $request->input('caseId') : null])->with('errors', 'Failed to delete case(s)!' . $e->getMessage());
+        }
+        return redirect()->route('suspects.index', ['caseId' => $request->has('caseId') ? $request->input('caseId') : null])->with('success', 'Case deleted successfully!');
+    }
 }

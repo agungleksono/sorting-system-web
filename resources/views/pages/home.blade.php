@@ -116,46 +116,53 @@
             </div>
         </div>
     </div>
-    
-    <button type="button" class="btn btn-danger btn-sm"><span data-feather="trash-2" class="align-text-bottom me-1"></span> Delete Item Suspect</button>
-    <table id="suspectTable" class="table table-striped" style="width:100%">
-        <thead>
-            <tr>
-                <th class="text-center"><input type="checkbox" id="selectAll"></th>
-                <th class="text-center">No.</th>
-                <th class="text-center">Part No.</th>
-                <th class="text-center">Lot No</th>
-                <th class="text-center">Box Id</th>
-                <th class="text-center">Invoice No</th>
-                <th class="text-center">Container No</th>
-                <th class="text-center">Quantity</th>
-                <th class="text-center">Judgment</th>
-                <th class="text-center">Scan Time</th>
-                <th class="text-center">Scan By</th>
-            </tr>
-        </thead>
-        <tbody>
-            @if (isset($suspects))
-                @foreach($suspects as $suspect)
+
+    <form id="suspectForm" method="POST" action="{{ route('suspects.delete') }}">
+        @csrf
+        <button type="submit" form="suspectForm" class="btn btn-danger btn-sm"><span data-feather="trash-2" class="align-text-bottom me-1"></span> Delete Item Suspect</button>
+        @if(request()->has('caseId'))
+            <input type="text" class="invisible" name="caseId" value="{{ request()->input('caseId') }}">
+        @endif
+        <table id="suspectTable" class="table table-striped" style="width:100%">
+            <thead>
                 <tr>
-                    <td class="text-center">
-                        <input type="checkbox" name="selected[]" value="{{ $suspect['suspect_id'] }}">
-                    </td>
-                    <td class="text-center">{{ $loop->iteration }}</td>
-                    <td class="text-center">{{ $suspect['part_no'] }}</td>
-                    <td class="text-center">{{ $suspect['lot_no'] }}</td>
-                    <td class="text-center">{{ $suspect['box_id'] }}</td>
-                    <td class="text-center">{{ $suspect['invoice_no'] }}</td>
-                    <td class="text-center">{{ $suspect['container_no'] }}</td>
-                    <td class="text-center">{{ $suspect['quantity'] }}</td>
-                    <td class="text-center">{!! $suspect['is_scanned'] ? '<span class="badge rounded-pill text-bg-danger">NG</span>' : '<span class="badge rounded-pill text-bg-secondary">Not Scanned</span>' !!}</td>
-                    <td>{{ $suspect['scanned_at'] }}</td>
-                    <td>{{ $suspect['scanned_by'] }}</td>
+                    <th class="text-center"><input type="checkbox" id="selectAll"></th>
+                    <th class="text-center">No.</th>
+                    <th class="text-center">Part No.</th>
+                    <th class="text-center">Lot No</th>
+                    <th class="text-center">Box Id</th>
+                    <th class="text-center">Invoice No</th>
+                    <th class="text-center">Container No</th>
+                    <th class="text-center">Quantity</th>
+                    <th class="text-center">Judgment</th>
+                    <th class="text-center">Scan Time</th>
+                    <th class="text-center">Scan By</th>
                 </tr>
-                @endforeach 
-            @endif
-        </tbody>
-    </table>
+            </thead>
+
+            <tbody>
+                @if (isset($suspects))
+                    @foreach($suspects as $suspect)
+                    <tr>
+                        <td class="text-center">
+                            <input type="checkbox" name="selected[]" value="{{ $suspect['suspect_id'] }}">
+                        </td>
+                        <td class="text-center">{{ $loop->iteration }}</td>
+                        <td class="text-center">{{ $suspect['part_no'] }}</td>
+                        <td class="text-center">{{ $suspect['lot_no'] }}</td>
+                        <td class="text-center">{{ $suspect['box_id'] }}</td>
+                        <td class="text-center">{{ $suspect['invoice_no'] }}</td>
+                        <td class="text-center">{{ $suspect['container_no'] }}</td>
+                        <td class="text-center">{{ $suspect['quantity'] }}</td>
+                        <td class="text-center">{!! $suspect['is_scanned'] ? '<span class="badge rounded-pill text-bg-danger">NG</span>' : '<span class="badge rounded-pill text-bg-secondary">Not Scanned</span>' !!}</td>
+                        <td>{{ $suspect['scanned_at'] }}</td>
+                        <td>{{ $suspect['scanned_by'] }}</td>
+                    </tr>
+                    @endforeach 
+                @endif
+            </tbody>
+        </table>
+    </form>
 </div>
 
 <!-- Add Manual Suspect Modal -->
