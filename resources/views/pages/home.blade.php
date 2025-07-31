@@ -117,15 +117,20 @@
         </div>
     </div>
 
-    <button type="submit" class="btn btn-danger btn-sm" data-bs-toggle="modal" data-bs-target="#deleteSuspectModal">
+    <button type="submit" class="btn btn-danger btn-sm" data-bs-toggle="modal" data-bs-target="#deleteModal" id="deleteSuspect" onClick="deleteModalHandler('Suspect')">
             <span data-feather="trash-2" class="align-text-bottom me-1"></span>
-            Delete Item Suspect
+            Delete Suspect Item
+    </button>
+    <button type="submit" class="btn btn-danger btn-sm" data-bs-toggle="modal" data-bs-target="#deleteModal" id="deleteQR" onClick="deleteModalHandler('QR')">
+            <span data-feather="trash-2" class="align-text-bottom me-1"></span>
+            Delete Scanned QR
     </button>
     <form id="suspectForm" method="POST" action="{{ route('suspects.delete') }}">
         @csrf
         @if(request()->has('caseId'))
-            <input type="text" class="invisible" name="caseId" value="{{ request()->input('caseId') }}">
+        <input type="text" class="invisible" name="caseId" value="{{ request()->input('caseId') }}">
         @endif
+        <input type="text" class="invisible" name="type" id="deleteType">
         <table id="suspectTable" class="table table-striped" style="width:100%">
             <thead>
                 <tr>
@@ -222,16 +227,16 @@
     </div>
 </div>
 
-<!-- Delete Suspect Modal -->
-<div class="modal fade" id="deleteSuspectModal" tabindex="-1" aria-labelledby="deleteSuspectModalLabel" aria-hidden="true">
+<!-- Deletion Modal -->
+<div class="modal fade" id="deleteModal" tabindex="-1" aria-labelledby="deleteModalLabel" aria-hidden="true">
     <div class="modal-dialog modal-dialog-centered">
         <div class="modal-content">
             <div class="modal-header">
-                <h1 class="modal-title fs-5" id="deleteSuspectModalLabel">Delete Suspect Part</h1>
+                <h1 class="modal-title fs-5" id="deleteModalLabel"></h1>
                 <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
             </div>
             <div class="modal-body">
-                <label>Are you sure you want to delete suspect part?</label>
+                <label id="deleteModalPrompt"></label>
                 <div>
                     <button type="button" class="btn btn-secondary " data-bs-dismiss="modal">Cancel</button>
                     <button type="submit" form="suspectForm" class="btn btn-danger btn-smbtn-primary">Delete</button>
@@ -240,6 +245,20 @@
         </div>
     </div>
 </div>
+
+<script>
+    function deleteModalHandler(type) {
+        if (type == "QR") {
+            document.getElementById("deleteModalLabel").innerHTML = "Delete Scanned QR";
+            document.getElementById("deleteModalPrompt").innerHTML = "Are you sure you want to delete scanned QR?";
+            document.getElementById("deleteType").value = "QR";
+        } else {
+            document.getElementById("deleteModalLabel").innerHTML = "Delete Suspect Item";
+            document.getElementById("deleteModalPrompt").innerHTML = "Are you sure you want to delete suspect item?";
+            document.getElementById("deleteType").value = "Suspect";
+        }
+    }
+</script>
 
 @endsection
 

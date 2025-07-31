@@ -6,6 +6,7 @@ use Illuminate\Http\Request;
 use PhpOffice\PhpSpreadsheet\IOFactory;
 use App\Models\Suspect;
 use App\Models\SuspectCase;
+use App\Models\QrCode;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Validator;
 use Illuminate\Support\Facades\File;
@@ -164,6 +165,11 @@ class SuspectImportController extends Controller
 
     public function delete(Request $request)
     {
+        return $request->input('type') == "QR" ? SuspectImportController::deleteQr($request) : SuspectImportController::deleteSuspect($request);
+    }
+
+    private function deleteSuspect(Request $request)
+    {
         try {
             DB::beginTransaction();
 
@@ -177,8 +183,30 @@ class SuspectImportController extends Controller
             DB::commit();
         } catch (\Exception $e) {
             DB::rollBack();
-            return redirect()->route('suspects.index', ['caseId' => $request->has('caseId') ? $request->input('caseId') : null])->with('errors', 'Failed to delete case(s)!' . $e->getMessage());
+            return redirect()->route('suspects.index', ['caseId' => $request->has('caseId') ? $request->input('caseId') : null])->with('errors', 'Failed to delete Suspect Item(s)!' . $e->getMessage());
         }
-        return redirect()->route('suspects.index', ['caseId' => $request->has('caseId') ? $request->input('caseId') : null])->with('success', 'Case deleted successfully!');
+        
+        return redirect()->route('suspects.index', ['caseId' => $request->has('caseId') ? $request->input('caseId') : null])->with('success', 'Suspect Item(s) deleted successfully!');
+    }
+
+    private function deleteQr(Request $request)
+    {
+        try {
+            DB::beginTransaction();
+
+            $selectedIds = $request->input('selected');
+            if (!empty($selectedIds)) {
+                foreach ($selectedIds as $selectedId) {
+                    QrCode::where('suspect_id', $selectedId)->delete();
+                }
+            }
+            
+            DB::commit();
+        } catch (\Exception $e) {
+            DB::rollBack();
+            return redirect()->route('suspects.index', ['caseId' => $request->has('caseId') ? $request->input('caseId') : null])->with('errors', 'Failed to delete Scanned QR(s)!' . $e->getMessage());
+        }
+        
+        return redirect()->route('suspects.index', ['caseId' => $request->has('caseId') ? $request->input('caseId') : null])->with('success', 'Scanned QR(s) deleted successfully!');
     }
 }

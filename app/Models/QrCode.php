@@ -12,6 +12,6 @@ class QrCode extends Model
     public $timestamps = false;
 
     protected $fillable = [
-        'qr_id', 'qr_content', 'judgment', 'part_no', 'lot_no', 'invoice_no', 'box_id', 'scan_parameter', 'suspect_case_id', 'created_by', 'created_at'
+        'qr_id', 'qr_content', 'judgment', 'part_no', 'lot_no', 'invoice_no', 'box_id', 'scan_parameter', 'suspect_case_id', 'created_by', 'created_at', 'suspect_id'
     ];
 }
