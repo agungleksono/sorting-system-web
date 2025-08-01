@@ -117,11 +117,11 @@
         </div>
     </div>
 
-    <button type="submit" class="btn btn-danger btn-sm" data-bs-toggle="modal" data-bs-target="#deleteModal" id="deleteSuspect" onClick="deleteModalHandler('Suspect')">
+    <button type="submit" class="btn btn-danger btn-sm" data-bs-toggle="modal" data-bs-target="#deleteModal" id="deleteSuspect" onClick="deleteModalHandler('Suspect')" disabled>
             <span data-feather="trash-2" class="align-text-bottom me-1"></span>
             Delete Suspect Item
     </button>
-    <button type="submit" class="btn btn-danger btn-sm" data-bs-toggle="modal" data-bs-target="#deleteModal" id="deleteQR" onClick="deleteModalHandler('QR')">
+    <button type="submit" class="btn btn-danger btn-sm" data-bs-toggle="modal" data-bs-target="#deleteModal" id="deleteQR" onClick="deleteModalHandler('QR')" disabled>
             <span data-feather="trash-2" class="align-text-bottom me-1"></span>
             Delete Scanned QR
     </button>
@@ -134,7 +134,7 @@
         <table id="suspectTable" class="table table-striped" style="width:100%">
             <thead>
                 <tr>
-                    <th class="text-center"><input type="checkbox" id="selectAll"></th>
+                    <th class="text-center"><input type="checkbox" id="selectAll" onClick="deleteButtonsToggle()"></th>
                     <th class="text-center">No.</th>
                     <th class="text-center">Part No.</th>
                     <th class="text-center">Lot No</th>
@@ -153,7 +153,7 @@
                     @foreach($suspects as $suspect)
                     <tr>
                         <td class="text-center">
-                            <input type="checkbox" name="selected[]" value="{{ $suspect['suspect_id'] }}">
+                            <input type="checkbox" name="selected[]" value="{{ $suspect['suspect_id'] }}" onClick="deleteButtonsToggle()">
                         </td>
                         <td class="text-center">{{ $loop->iteration }}</td>
                         <td class="text-center">{{ $suspect['part_no'] }}</td>
@@ -247,6 +247,7 @@
 </div>
 
 <script>
+    // Change the Delete Modal's text and the form's type whether the user is deleting QR or Suspect.
     function deleteModalHandler(type) {
         if (type == "QR") {
             document.getElementById("deleteModalLabel").innerHTML = "Delete Scanned QR";
@@ -257,6 +258,21 @@
             document.getElementById("deleteModalPrompt").innerHTML = "Are you sure you want to delete suspect item?";
             document.getElementById("deleteType").value = "Suspect";
         }
+    }
+
+    // The delete buttons should be disabled when no checkboxes are checked.
+    function deleteButtonsToggle() {
+        let checkboxes = document.getElementsByName("selected[]");
+        for (let i = 0; i < checkboxes.length; i++) {
+            if (checkboxes[i].checked) {
+                document.getElementById("deleteSuspect").disabled = false;
+                document.getElementById("deleteQR").disabled = false;
+                return;
+            }
+        }
+
+        document.getElementById("deleteSuspect").disabled = true;
+        document.getElementById("deleteQR").disabled = true;
     }
 </script>
 
@@ -285,6 +301,8 @@
         document.getElementById('selectAll').addEventListener('change', function () {
             let checkboxes = document.querySelectorAll('input[name="selected[]"]');
             checkboxes.forEach(cb => cb.checked = this.checked);
+            document.getElementById("deleteSuspect").disabled = !this.checked;
+            document.getElementById("deleteQR").disabled = !this.checked;
         });
     </script>
 @endpush
