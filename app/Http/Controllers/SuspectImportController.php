@@ -198,6 +198,7 @@ class SuspectImportController extends Controller
             if (!empty($selectedIds)) {
                 foreach ($selectedIds as $selectedId) {
                     QrCode::where('suspect_id', $selectedId)->delete();
+                    Suspect::where('suspect_id', $selectedId)->update(['is_scanned' => 0, 'scanned_by' => null, 'scanned_at' => null, 'progress_quantity' => null]);
                 }
             }
             

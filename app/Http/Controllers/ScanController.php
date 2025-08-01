@@ -103,6 +103,7 @@ class ScanController extends Controller
                 'suspect_case_id' => $suspectCaseId,
                 'created_at' => date('Y-m-d H:i:s'),
                 'created_by' => $scannedBy,
+                'suspect_id' => $isSuspectFound ? $foundedData['suspect_id'] : null,
             ]);
     
             PrintQueue::create([
