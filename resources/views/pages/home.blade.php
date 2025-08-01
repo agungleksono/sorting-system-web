@@ -116,46 +116,61 @@
             </div>
         </div>
     </div>
-    
-    <button type="button" class="btn btn-danger btn-sm"><span data-feather="trash-2" class="align-text-bottom me-1"></span> Delete Item Suspect</button>
-    <table id="suspectTable" class="table table-striped" style="width:100%">
-        <thead>
-            <tr>
-                <th class="text-center"><input type="checkbox" id="selectAll"></th>
-                <th class="text-center">No.</th>
-                <th class="text-center">Part No.</th>
-                <th class="text-center">Lot No</th>
-                <th class="text-center">Box Id</th>
-                <th class="text-center">Invoice No</th>
-                <th class="text-center">Container No</th>
-                <th class="text-center">Quantity</th>
-                <th class="text-center">Judgment</th>
-                <th class="text-center">Scan Time</th>
-                <th class="text-center">Scan By</th>
-            </tr>
-        </thead>
-        <tbody>
-            @if (isset($suspects))
-                @foreach($suspects as $suspect)
+
+    <button type="submit" class="btn btn-danger btn-sm" data-bs-toggle="modal" data-bs-target="#deleteModal" id="deleteSuspect" onClick="deleteModalHandler('Suspect')" disabled>
+            <span data-feather="trash-2" class="align-text-bottom me-1"></span>
+            Delete Suspect Item
+    </button>
+    <button type="submit" class="btn btn-danger btn-sm" data-bs-toggle="modal" data-bs-target="#deleteModal" id="deleteQR" onClick="deleteModalHandler('QR')" disabled>
+            <span data-feather="trash-2" class="align-text-bottom me-1"></span>
+            Delete Scanned QR
+    </button>
+    <form id="suspectForm" method="POST" action="{{ route('suspects.delete') }}">
+        @csrf
+        @if(request()->has('caseId'))
+        <input type="text" class="invisible" name="caseId" value="{{ request()->input('caseId') }}">
+        @endif
+        <input type="text" class="invisible" name="type" id="deleteType">
+        <table id="suspectTable" class="table table-striped" style="width:100%">
+            <thead>
                 <tr>
-                    <td class="text-center">
-                        <input type="checkbox" name="selected[]" value="{{ $suspect['suspect_id'] }}">
-                    </td>
-                    <td class="text-center">{{ $loop->iteration }}</td>
-                    <td class="text-center">{{ $suspect['part_no'] }}</td>
-                    <td class="text-center">{{ $suspect['lot_no'] }}</td>
-                    <td class="text-center">{{ $suspect['box_id'] }}</td>
-                    <td class="text-center">{{ $suspect['invoice_no'] }}</td>
-                    <td class="text-center">{{ $suspect['container_no'] }}</td>
-                    <td class="text-center">{{ $suspect['quantity'] }}</td>
-                    <td class="text-center">{!! $suspect['is_scanned'] ? '<span class="badge rounded-pill text-bg-danger">NG</span>' : '<span class="badge rounded-pill text-bg-secondary">Not Scanned</span>' !!}</td>
-                    <td>{{ $suspect['scanned_at'] }}</td>
-                    <td>{{ $suspect['scanned_by'] }}</td>
+                    <th class="text-center"><input type="checkbox" id="selectAll" onClick="deleteButtonsToggle()"></th>
+                    <th class="text-center">No.</th>
+                    <th class="text-center">Part No.</th>
+                    <th class="text-center">Lot No</th>
+                    <th class="text-center">Box Id</th>
+                    <th class="text-center">Invoice No</th>
+                    <th class="text-center">Container No</th>
+                    <th class="text-center">Quantity</th>
+                    <th class="text-center">Judgment</th>
+                    <th class="text-center">Scan Time</th>
+                    <th class="text-center">Scan By</th>
                 </tr>
-                @endforeach 
-            @endif
-        </tbody>
-    </table>
+            </thead>
+
+            <tbody>
+                @if (isset($suspects))
+                    @foreach($suspects as $suspect)
+                    <tr>
+                        <td class="text-center">
+                            <input type="checkbox" name="selected[]" value="{{ $suspect['suspect_id'] }}" onClick="deleteButtonsToggle()">
+                        </td>
+                        <td class="text-center">{{ $loop->iteration }}</td>
+                        <td class="text-center">{{ $suspect['part_no'] }}</td>
+                        <td class="text-center">{{ $suspect['lot_no'] }}</td>
+                        <td class="text-center">{{ $suspect['box_id'] }}</td>
+                        <td class="text-center">{{ $suspect['invoice_no'] }}</td>
+                        <td class="text-center">{{ $suspect['container_no'] }}</td>
+                        <td class="text-center">{{ $suspect['quantity'] }}</td>
+                        <td class="text-center">{!! $suspect['is_scanned'] ? '<span class="badge rounded-pill text-bg-danger">NG</span>' : '<span class="badge rounded-pill text-bg-secondary">Not Scanned</span>' !!}</td>
+                        <td>{{ $suspect['scanned_at'] }}</td>
+                        <td>{{ $suspect['scanned_by'] }}</td>
+                    </tr>
+                    @endforeach 
+                @endif
+            </tbody>
+        </table>
+    </form>
 </div>
 
 <!-- Add Manual Suspect Modal -->
@@ -212,6 +227,55 @@
     </div>
 </div>
 
+<!-- Deletion Modal -->
+<div class="modal fade" id="deleteModal" tabindex="-1" aria-labelledby="deleteModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h1 class="modal-title fs-5" id="deleteModalLabel"></h1>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <label id="deleteModalPrompt"></label>
+                <div>
+                    <button type="button" class="btn btn-secondary " data-bs-dismiss="modal">Cancel</button>
+                    <button type="submit" form="suspectForm" class="btn btn-danger btn-smbtn-primary">Delete</button>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    // Change the Delete Modal's text and the form's type whether the user is deleting QR or Suspect.
+    function deleteModalHandler(type) {
+        if (type == "QR") {
+            document.getElementById("deleteModalLabel").innerHTML = "Delete Scanned QR";
+            document.getElementById("deleteModalPrompt").innerHTML = "Are you sure you want to delete scanned QR?";
+            document.getElementById("deleteType").value = "QR";
+        } else {
+            document.getElementById("deleteModalLabel").innerHTML = "Delete Suspect Item";
+            document.getElementById("deleteModalPrompt").innerHTML = "Are you sure you want to delete suspect item?";
+            document.getElementById("deleteType").value = "Suspect";
+        }
+    }
+
+    // The delete buttons should be disabled when no checkboxes are checked.
+    function deleteButtonsToggle() {
+        let checkboxes = document.getElementsByName("selected[]");
+        for (let i = 0; i < checkboxes.length; i++) {
+            if (checkboxes[i].checked) {
+                document.getElementById("deleteSuspect").disabled = false;
+                document.getElementById("deleteQR").disabled = false;
+                return;
+            }
+        }
+
+        document.getElementById("deleteSuspect").disabled = true;
+        document.getElementById("deleteQR").disabled = true;
+    }
+</script>
+
 @endsection
 
 @push('addon-script')
@@ -237,6 +301,8 @@
         document.getElementById('selectAll').addEventListener('change', function () {
             let checkboxes = document.querySelectorAll('input[name="selected[]"]');
             checkboxes.forEach(cb => cb.checked = this.checked);
+            document.getElementById("deleteSuspect").disabled = !this.checked;
+            document.getElementById("deleteQR").disabled = !this.checked;
         });
     </script>
 @endpush
