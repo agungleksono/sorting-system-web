@@ -56,7 +56,3 @@ Route::middleware(['auth.web'])->group(function () {
     Route::post('/users', [UserController::class, 'store']);
     Route::delete('/users/{user_id}', [UserController::class, 'destroy'])->name('users.destroy');
 });
-
-Route::get('/print', function () {
-    return view('pages.print');
-});

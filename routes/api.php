@@ -18,18 +18,12 @@ use App\Http\Controllers\SuspectController;
 |
 */
 
-Route::middleware('auth:api')->get('/user', function (Request $request) {
-    return $request->user();
-});
-
-
 Route::prefix('v1')->group(function () {
     Route::middleware('auth.api')->group(function () {
         Route::post('/auth/login', [AuthController::class, 'loginApi']);
 
         Route::post('/scan', [ScanController::class, 'scan']);
         Route::post('/scan/multi-box', [ScanController::class, 'scanMultiBox']);
-        // Route::get('/scan/part-no', [ScanController::class, 'getListPartNo']);
         Route::get('/scan/progress/{suspect_case_id}', [ScanController::class, 'countScanProgress']);
         Route::post('/print-queue', [ScanController::class, 'checkPrintQueue']);
         Route::post('/reprint', [ScanController::class, 'reprint']);
