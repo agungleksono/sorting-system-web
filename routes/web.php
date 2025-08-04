@@ -25,14 +25,14 @@ use Illuminate\Support\Facades\Auth;
 //     return view('pages.login');
 // });
 
-Route::get('/signin', [AuthController::class, 'loginPage'])->name('login');
+Route::get('/', [AuthController::class, 'loginPage'])->name('login')->middleware('guest.web');
 Route::post('/signin', [AuthController::class, 'loginWeb']);
 Route::post('/signout', [AuthController::class, 'logoutWeb'])->name('logout');
 
 Route::get('/test', [SandboxController::class, 'test']);
 
 Route::middleware(['auth.web'])->group(function () {
-    Route::get('/', [SuspectImportController::class, 'index']);
+    // Route::get('/', [SuspectImportController::class, 'index']);
     Route::get('/suspects', [SuspectImportController::class, 'index'])->name('suspects.index');
     Route::post('/suspects/import', [SuspectImportController::class, 'import'])->name('suspects.import');
     Route::post('/suspect/manual-add', [SuspectImportController::class, 'manualAdd'])->name('suspects.manual-add');

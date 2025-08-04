@@ -64,5 +64,6 @@ class Kernel extends HttpKernel
         'verified' => \Illuminate\Auth\Middleware\EnsureEmailIsVerified::class,
         'auth.web' => \App\Http\Middleware\AuthWeb::class,
         'auth.api' => \App\Http\Middleware\CheckBearerToken::class,
+        'guest.web' => \App\Http\Middleware\RedirectAuthenticatedUserWeb::class,
     ];
 }
