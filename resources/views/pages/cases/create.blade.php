@@ -51,7 +51,7 @@
                 </select>
             </div>
             <div class="mb-3">
-                <label for="qrContent" class="form-label">Scan QR (Opsional)</label>
+                <label for="qrContent" class="form-label">Scan QR</label>
                 <textarea class="form-control" id="qrContent" name="qrContent" rows="3"></textarea>
                 <div id="qrContentHelp" class="form-text">Scan sample QR untuk menghitung otomatis panjang karakter.</div>
             </div>
