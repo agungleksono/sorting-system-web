@@ -121,9 +121,9 @@
             <span data-feather="trash-2" class="align-text-bottom me-1"></span>
             Delete Suspect Item
     </button>
-    <button type="submit" class="btn btn-danger btn-sm" data-bs-toggle="modal" data-bs-target="#deleteModal" id="deleteQR" onClick="deleteModalHandler('QR')" disabled>
-            <span data-feather="trash-2" class="align-text-bottom me-1"></span>
-            Delete Scanned QR
+    <button type="submit" class="btn btn-warning btn-sm" data-bs-toggle="modal" data-bs-target="#deleteModal" id="deleteQR" onClick="deleteModalHandler('QR')" disabled>
+            <span data-feather="refresh-ccw" class="align-text-bottom me-1"></span>
+            Reset Scanned QR
     </button>
     <form id="suspectForm" method="POST" action="{{ route('suspects.delete') }}">
         @csrf
@@ -237,44 +237,14 @@
             </div>
             <div class="modal-body">
                 <label id="deleteModalPrompt"></label>
-                <div>
-                    <button type="button" class="btn btn-secondary " data-bs-dismiss="modal">Cancel</button>
-                    <button type="submit" form="suspectForm" class="btn btn-danger btn-smbtn-primary">Delete</button>
+                <div class="mt-3">
+                    <button type="button" class="btn btn-secondary btn-sm" data-bs-dismiss="modal">Cancel</button>
+                    <button type="submit" form="suspectForm" id="deleteBtnModal" class="btn btn-danger btn-sm">Delete</button>
                 </div>
             </div>
         </div>
     </div>
 </div>
-
-<script>
-    // Change the Delete Modal's text and the form's type whether the user is deleting QR or Suspect.
-    function deleteModalHandler(type) {
-        if (type == "QR") {
-            document.getElementById("deleteModalLabel").innerHTML = "Delete Scanned QR";
-            document.getElementById("deleteModalPrompt").innerHTML = "Are you sure you want to delete scanned QR?";
-            document.getElementById("deleteType").value = "QR";
-        } else {
-            document.getElementById("deleteModalLabel").innerHTML = "Delete Suspect Item";
-            document.getElementById("deleteModalPrompt").innerHTML = "Are you sure you want to delete suspect item?";
-            document.getElementById("deleteType").value = "Suspect";
-        }
-    }
-
-    // The delete buttons should be disabled when no checkboxes are checked.
-    function deleteButtonsToggle() {
-        let checkboxes = document.getElementsByName("selected[]");
-        for (let i = 0; i < checkboxes.length; i++) {
-            if (checkboxes[i].checked) {
-                document.getElementById("deleteSuspect").disabled = false;
-                document.getElementById("deleteQR").disabled = false;
-                return;
-            }
-        }
-
-        document.getElementById("deleteSuspect").disabled = true;
-        document.getElementById("deleteQR").disabled = true;
-    }
-</script>
 
 @endsection
 
@@ -304,5 +274,35 @@
             document.getElementById("deleteSuspect").disabled = !this.checked;
             document.getElementById("deleteQR").disabled = !this.checked;
         });
+
+        // Change the Delete Modal's text and the form's type whether the user is deleting QR or Suspect.
+        function deleteModalHandler(type) {
+            if (type == "QR") {
+                document.getElementById("deleteModalLabel").innerHTML = "Reset Scanned QR";
+                document.getElementById("deleteModalPrompt").innerHTML = "Are you sure you want to reset scanned QR?";
+                document.getElementById("deleteType").value = "QR";
+                document.getElementById("deleteBtnModal").textContent = "Reset";
+            } else {
+                document.getElementById("deleteModalLabel").innerHTML = "Delete Suspect Item";
+                document.getElementById("deleteModalPrompt").innerHTML = "Are you sure you want to delete suspect item?";
+                document.getElementById("deleteType").value = "Suspect";
+                document.getElementById("deleteBtnModal").textContent = "Delete";
+            }
+        }
+
+        // The delete buttons should be disabled when no checkboxes are checked.
+        function deleteButtonsToggle() {
+            let checkboxes = document.getElementsByName("selected[]");
+            for (let i = 0; i < checkboxes.length; i++) {
+                if (checkboxes[i].checked) {
+                    document.getElementById("deleteSuspect").disabled = false;
+                    document.getElementById("deleteQR").disabled = false;
+                    return;
+                }
+            }
+
+            document.getElementById("deleteSuspect").disabled = true;
+            document.getElementById("deleteQR").disabled = true;
+        }
     </script>
 @endpush
