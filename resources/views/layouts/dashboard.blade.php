@@ -103,24 +103,14 @@
                                 Case
                                 </a>
                             </li>
-                            <!-- <li class="nav-item">
-                                <a class="nav-link {{ request()->is('scans') ? 'active' : '' }}" href="{{ url('scans') }}">
-                                <span data-feather="file" class="align-text-bottom"></span>
-                                Scanning Data
-                                </a>
-                            </li> -->
-                            <!-- <li class="nav-item">
-                                <a class="nav-link" href="#">
-                                <span data-feather="shopping-cart" class="align-text-bottom"></span>
-                                Products
-                                </a>
-                            </li> -->
+                            @if (in_array(session('authority'), ['1', '2']))
                             <li class="nav-item">
                                 <a class="nav-link {{ request()->is('users/*') ? 'active' : '' }}" href="{{ url('users/management') }}">
                                 <span data-feather="users" class="align-text-bottom"></span>
                                 User Management
                                 </a>
                             </li>
+                            @endif
                             <!-- <li class="nav-item">
                                 <a class="nav-link" href="#">
                                 <span data-feather="bar-chart-2" class="align-text-bottom"></span>
