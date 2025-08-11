@@ -62,7 +62,9 @@ class SuspectCaseController extends Controller
     {
         $scanParameters = ScanParameter::all();
         $scanTypes = ScanType::all();
-        return view('pages.cases.create', compact('scanParameters', 'scanTypes'));
+        $bearerToken = env('BEARER_TOKEN');
+
+        return view('pages.cases.create', compact('scanParameters', 'scanTypes', 'bearerToken'));
     }
 
     public function store(Request $request)
@@ -111,6 +113,47 @@ class SuspectCaseController extends Controller
         ]);
 
         return redirect('/cases/create')->with('success', 'New Case created successfully!');
+    }
+    
+    public function apiStore(Request $request)
+    {
+        $validator = Validator::make($request->all(), [
+            'title' => 'required|string',
+            'scanType' => 'required|string',
+            'scanParameter' => 'required|string',
+            'qrLength' => 'required|integer',
+        ]);
+
+        if ($validator->fails()) {
+            return ResponseFormatter::error(null, $validator->errors()->first(), 400);
+        }
+
+        if (!empty($request->input('qrContent')) && ($request->input('qrLength') != strlen($request->input('qrContent')))) {
+            return ResponseFormatter::error(null, 'Panjang karakter QR tidak sesuai dengan hasil scan', 400);
+        }
+
+        $latestCase = SuspectCase::orderBy('created_at', 'desc')->value('suspect_case_id');
+
+        if ($latestCase) {
+            $number = (int) substr($latestCase, -4);
+            $newNumber = $number + 1;
+            $newCaseId = 'CASE' . str_pad($newNumber, 4, '0', STR_PAD_LEFT);
+        } else {
+            $newCaseId = 'CASE0001';
+        }
+
+        $suspectCase = SuspectCase::create([
+            'suspect_case_id' => $newCaseId,
+            'title' => $request->input('title'),
+            'scan_parameter_code' => $request->input('scanParameter'),
+            'scan_type_id' => $request->input('scanType'),
+            'qr_length' => $request->input('qrLength'),
+            'is_closed' => '0',
+            'created_by' => $request->user()->npk ?? null, // Or use session('npk') if needed
+            'created_at' => now(),
+        ]);
+
+        return ResponseFormatter::success($suspectCase, 'New Case created successfully!');
     }
 
     public function edit($suspectCaseId)

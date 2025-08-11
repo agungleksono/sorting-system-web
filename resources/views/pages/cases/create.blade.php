@@ -9,28 +9,28 @@
 
 {{-- Success Alert --}}
 @if (session('success'))
-    <div class="alert alert-success alert-dismissible fade show mt-4" role="alert">
+    <!-- <div class="alert alert-success alert-dismissible fade show mt-4" role="alert">
         {{ session('success') }}
         <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
-    </div>
+    </div> -->
 @endif
 
 {{-- Error Alert --}}
 @if ($errors->any())
-    <div class="alert alert-danger alert-dismissible fade show mt-4" role="alert">
+    <!-- <div class="alert alert-danger alert-dismissible fade show mt-4" role="alert">
         {{ $errors->first() }}
         <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
-    </div>
+    </div> -->
 @endif
+<div id="alert-container"></div>
 
 <div class="container-fluid mt-4">
     <div class="col-md-6">
-        <form action="{{ route('cases.store') }}" method="post">
+        <form id="caseForm" action="{{ route('cases.store') }}" method="post">
             @csrf
             <div class="mb-3">
                 <label for="title" class="form-label">Case Title</label>
                 <input type="text" class="form-control" id="title" name="title" required>
-                <!-- <div id="emailHelp" class="form-text">We'll never share your email with anyone else.</div> -->
             </div>
             <div class="mb-3">
                 <label for="scanType" class="form-label">Scan Type</label>
@@ -59,14 +59,6 @@
                 <label for="qrLength" class="form-label">Panjang Karakter QR</label>
                 <input type="text" class="form-control" id="qrLength" name="qrLength">
             </div>
-            <!-- <div class="mb-3">
-                <label for="stringStartIndex" class="form-label">Digit Awal Kata Kunci</label>
-                <input type="text" class="form-control" id="stringStartIndex" name="stringStartIndex">
-            </div>
-            <div class="mb-3">
-                <label for="stringLength" class="form-label">Panjang Kata Kunci</label>
-                <input type="text" class="form-control" id="stringLength" name="stringLength">
-            </div> -->
             <button type="submit" class="btn btn-primary">Save</button>
         </form>
     </div>
@@ -77,13 +69,66 @@
 @push('addon-script')
     <script>
         document.addEventListener('DOMContentLoaded', () => {
+            const API_BEARER_TOKEN = "{{ $bearerToken }}";
+            const form = document.getElementById('caseForm');
             const qrContent = document.getElementById('qrContent');
+            const qrLength = document.getElementById('qrLength');
 
             qrContent.addEventListener('keydown', (e) => {
                 if (e.key === 'Enter' || e.key === 'Tab') {
                     qrLength.value = qrContent.value.length;
                 }
             })
+
+            form.addEventListener('submit', async (e) => {
+                e.preventDefault();
+
+                // Collect form data
+                const data = {
+                    title: document.getElementById('title').value,
+                    scanType: document.getElementById('scanType').value,
+                    scanParameter: document.getElementById('scanParameter').value,
+                    qrContent: qrContent.value,
+                    qrLength: parseInt(qrLength.value),
+                };
+
+                try {
+                    const response = await fetch('/api/v1/cases', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'Accept': 'application/json',
+                            'Authorization': `Bearer ${API_BEARER_TOKEN}`,
+                        },
+                        body: JSON.stringify(data),
+                    });
+
+                    const result = await response.json();
+
+                    if (!response.ok) {
+                        throw new Error(result.meta.message || 'Terjadi kesalahan.');
+                    }
+                    
+                    showAlert('New case created successfully.', 'success');
+                    form.reset();
+                } catch (error) {
+                    showAlert('Failed to create a new case.', 'success');
+                }
+            })
         });
+
+        function showAlert(message, type = 'success') {
+            const alertContainer = document.getElementById('alert-container');
+            alertContainer.innerHTML = `
+                <div class="alert alert-${type} alert-dismissible fade show mt-4" role="alert">
+                    ${message}
+                    <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                </div>
+            `;
+
+            setTimeout(() => {
+                alertContainer.innerHTML = '';
+            }, 3000);
+        }
     </script>
 @endpush

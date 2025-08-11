@@ -29,6 +29,7 @@ Route::prefix('v1')->group(function () {
         Route::post('/reprint', [ScanController::class, 'reprint']);
 
         Route::get('/cases', [SuspectCaseController::class, 'indexApi']);
+        Route::post('/cases', [SuspectCaseController::class, 'apiStore']);
         Route::post('/suspects/list', [SuspectController::class, 'suspectList']);
     });
 });
