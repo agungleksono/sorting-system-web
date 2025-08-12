@@ -37,10 +37,7 @@ Route::middleware(['auth.web'])->group(function () {
     // Suspect Case Routes
     Route::get('/cases', [SuspectCaseController::class, 'index'])->name('cases.index');
     Route::get('/cases/create', [SuspectCaseController::class, 'create'])->name('cases.create');
-    Route::post('/cases', [SuspectCaseController::class, 'store'])->name('cases.store');
     Route::get('/cases/{suspect_case_id}/edit', [SuspectCaseController::class, 'edit'])->name('cases.edit');
-    Route::patch('/cases/{suspect_case_id}', [SuspectCaseController::class, 'update'])->name('cases.update');
-    Route::delete('/cases/{suspect_case_id}', [SuspectCaseController::class, 'destroy'])->name('cases.destroy');
 
     Route::get('/scans', [SuspectController::class, 'dataScanned']);
 

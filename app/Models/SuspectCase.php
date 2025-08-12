@@ -8,6 +8,10 @@ use Illuminate\Database\Eloquent\Model;
 class SuspectCase extends Model
 {
     use HasFactory;
+
+    protected $primaryKey = 'suspect_case_id';
+    public $incrementing = false;
+    protected $keyType = 'string';
     
     public $timestamps = false;
 

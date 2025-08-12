@@ -4,28 +4,15 @@
 
 @section('content')
 <div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-3 border-bottom">
-    <h1 class="h3">Scanning Data</h1>
+    <h1 class="h3">Edit Case</h1>
 </div>
 
-{{-- Success Alert --}}
-@if (session('success'))
-    <div class="alert alert-success alert-dismissible fade show mt-4" role="alert">
-        {{ session('success') }}
-        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
-    </div>
-@endif
-
-{{-- Error Alert --}}
-@if ($errors->any())
-    <div class="alert alert-danger alert-dismissible fade show mt-4" role="alert">
-        {{ $errors->first() }}
-        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
-    </div>
-@endif
+{{-- Alert --}}
+<div id="alert-container"></div>
 
 <div class="container-fluid mt-4">
     <div class="col-md-6">
-        <form action="{{ route('cases.update', ['suspect_case_id' => $suspectCase->suspect_case_id]) }}" method="post">
+        <form id="caseForm">
             @csrf
             @method('PATCH')
             <div class="mb-3">
@@ -73,7 +60,7 @@
                     </label>
                 </div>
             </div>
-            <button type="submit" class="btn btn-primary mt-2">Save</button>
+            <button type="submit" id="submitBtn" class="btn btn-primary mt-2">Save</button>
         </form>
     </div>
 </div>
@@ -83,13 +70,60 @@
 @push('addon-script')
     <script>
         document.addEventListener('DOMContentLoaded', () => {
+            const API_BEARER_TOKEN = "{{ $bearerToken }}";
+            const suspectCaseId = "{{ $suspectCase->suspect_case_id }}";
+            const userId = "{{ session('npk') }}";
+            const form = document.getElementById('caseForm');
             const qrContent = document.getElementById('qrContent');
+            const qrLength = document.getElementById('qrLength');
 
             qrContent.addEventListener('keydown', (e) => {
                 if (e.key === 'Enter') {
                     qrLength.value = qrContent.value.length;
                 }
-            })
+            });
+
+            form.addEventListener('submit', async (e) => {
+                e.preventDefault();
+
+                const submitBtn = document.getElementById('submitBtn');
+                const originalText = submitBtn.innerHTML;
+
+                // Show loading state
+                submitBtn.disabled = true;
+                submitBtn.innerHTML = `<span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span> Saving...`;
+
+                // Collect form data
+                const data = {
+                    title: document.getElementById('title').value,
+                    scanType: document.getElementById('scanType').value,
+                    scanParameter: document.getElementById('scanParameter').value,
+                    qrLength: qrLength.value,
+                    is_closed: document.querySelector('input[name="caseStatus"]:checked')?.value || 0,
+                    user_id: userId,
+                };
+
+                try {
+                    const response = await apiFetch(`/api/v1/cases/${suspectCaseId}`, 'PATCH', data, API_BEARER_TOKEN);
+
+                    document.getElementById('title').value = response.data.title;
+                    document.getElementById('scanType').value = response.data.scan_type_id;
+                    document.getElementById('scanParameter').value = response.data.scan_parameter_code;
+                    document.getElementById('qrLength').value = response.data.qr_length;
+
+                    if (response.data.is_closed == 1) {
+                        document.getElementById('caseStatusClose').checked = true;
+                    } else {
+                        document.getElementById('caseStatusOpen').checked = true;
+                    }
+                    showAlert('Case updated successfully!', 'success');
+                } catch (error) {
+                    showAlert('Failed to update case.', 'danger');
+                } finally {
+                    submitBtn.disabled = false;
+                    submitBtn.innerHTML = originalText;
+                }
+            });
         });
     </script>
 @endpush

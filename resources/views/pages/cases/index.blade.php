@@ -7,21 +7,8 @@
     <h1 class="h3">Case</h1>
 </div>
 
-{{-- Success Alert --}}
-@if (session('success'))
-    <div class="alert alert-success alert-dismissible fade show mt-4" role="alert">
-        {{ session('success') }}
-        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
-    </div>
-@endif
-
-{{-- Error Alert --}}
-@if ($errors->any())
-    <div class="alert alert-danger alert-dismissible fade show mt-4" role="alert">
-        {{ $errors->first() }}
-        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
-    </div>
-@endif
+{{-- Alert --}}
+<div id="alert-container"></div>
 
 <div class="container-fluid mt-4">
     <a class="btn btn-info" href="{{ route('cases.create') }}" role="button">
@@ -58,14 +45,9 @@
                             <a href="{{ route('cases.edit', ['suspect_case_id' => $case->suspect_case_id]) }}" class="me col-auto">
                                 <span data-feather="edit" class="align-text-bottom text-success"></span>
                             </a>
-                            <form method="post" action="{{ route('cases.destroy', ['suspect_case_id' => $case->suspect_case_id]) }}" class="col-auto" onsubmit="return confirmDelete()">
-                                @csrf
-                                @method('DELETE')
-                                <!-- <a href=""><span data-feather="trash-2" class="align-text-bottom text-danger"></span></a> -->
-                                <button type="submit" style="background: none; border: none; padding: 0;">
-                                    <span data-feather="trash-2" class="align-text-bottom text-danger"></span>
-                                </button>
-                            </form>
+                            <button onclick="deleteCase('{{ $case->suspect_case_id }}')" class="col-auto" style="background: none; border: none; padding: 0;">
+                                <span data-feather="trash-2" class="align-text-bottom text-danger"></span>
+                            </button>
                         </div>
                     </td>
                 </tr>
@@ -79,18 +61,37 @@
 
 @push('addon-script')
     <script>
-        new DataTable('#caseTable', {
-            layout: {
-                topStart: {
-                    buttons: ['excel']
-                }
-            },
-            pageLength: 20,
+        document.addEventListener('DOMContentLoaded', () => {
+            // Show alert after page reload if flag is set
+            if (localStorage.getItem('caseDeleted') === '1') {
+                showAlert('Case deleted successfully!', 'success');
+                localStorage.removeItem('caseDeleted');
+            }
+
+            // Initialize DataTable
+            new DataTable('#caseTable', {
+                layout: {
+                    topStart: {
+                        buttons: ['excel']
+                    }
+                },
+                pageLength: 20,
+            });
         });
 
-        function confirmDelete() {
-            // Show a confirmation alert before submitting the form
-            return confirm('Are you sure you want to delete this case?');
-        }
+        async function deleteCase(suspectCaseId) {
+            if (!confirm('Are you sure you want to delete this case?')) return;
+
+            try {
+                await apiFetch(`/api/v1/cases/${suspectCaseId}`, 'DELETE', null, "{{ $bearerToken ?? '' }}");
+
+                // Set a flag to trigger alert
+                localStorage.setItem('caseDeleted', '1');
+                
+                window.location.reload();
+            } catch (error) {
+                showAlert('Failed to delete case.', 'danger');
+            }
+        }   
     </script>
 @endpush

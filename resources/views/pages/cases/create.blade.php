@@ -7,26 +7,12 @@
     <h1 class="h3">New Case</h1>
 </div>
 
-{{-- Success Alert --}}
-@if (session('success'))
-    <!-- <div class="alert alert-success alert-dismissible fade show mt-4" role="alert">
-        {{ session('success') }}
-        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
-    </div> -->
-@endif
-
-{{-- Error Alert --}}
-@if ($errors->any())
-    <!-- <div class="alert alert-danger alert-dismissible fade show mt-4" role="alert">
-        {{ $errors->first() }}
-        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
-    </div> -->
-@endif
+{{-- Alert --}}
 <div id="alert-container"></div>
 
 <div class="container-fluid mt-4">
     <div class="col-md-6">
-        <form id="caseForm" action="{{ route('cases.store') }}" method="post">
+        <form id="caseForm">
             @csrf
             <div class="mb-3">
                 <label for="title" class="form-label">Case Title</label>
@@ -59,7 +45,7 @@
                 <label for="qrLength" class="form-label">Panjang Karakter QR</label>
                 <input type="text" class="form-control" id="qrLength" name="qrLength">
             </div>
-            <button type="submit" class="btn btn-primary">Save</button>
+            <button type="submit" id="submitBtn" class="btn btn-primary">Save</button>
         </form>
     </div>
 </div>
@@ -70,6 +56,7 @@
     <script>
         document.addEventListener('DOMContentLoaded', () => {
             const API_BEARER_TOKEN = "{{ $bearerToken }}";
+            const userId = "{{ session('npk') }}";
             const form = document.getElementById('caseForm');
             const qrContent = document.getElementById('qrContent');
             const qrLength = document.getElementById('qrLength');
@@ -83,52 +70,34 @@
             form.addEventListener('submit', async (e) => {
                 e.preventDefault();
 
+                const submitBtn = document.getElementById('submitBtn');
+                const originalText = submitBtn.innerHTML;
+
+                // Show loading state
+                submitBtn.disabled = true;
+                submitBtn.innerHTML = `<span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span> Saving...`;
+
                 // Collect form data
                 const data = {
                     title: document.getElementById('title').value,
                     scanType: document.getElementById('scanType').value,
                     scanParameter: document.getElementById('scanParameter').value,
-                    qrContent: qrContent.value,
+                    // qrContent: qrContent.value,
                     qrLength: parseInt(qrLength.value),
+                    user_id: userId,
                 };
 
                 try {
-                    const response = await fetch('/api/v1/cases', {
-                        method: 'POST',
-                        headers: {
-                            'Content-Type': 'application/json',
-                            'Accept': 'application/json',
-                            'Authorization': `Bearer ${API_BEARER_TOKEN}`,
-                        },
-                        body: JSON.stringify(data),
-                    });
-
-                    const result = await response.json();
-
-                    if (!response.ok) {
-                        throw new Error(result.meta.message || 'Terjadi kesalahan.');
-                    }
-                    
+                    await apiFetch('/api/v1/cases', 'POST', data, API_BEARER_TOKEN);
                     showAlert('New case created successfully.', 'success');
                     form.reset();
                 } catch (error) {
-                    showAlert('Failed to create a new case.', 'success');
+                    showAlert('Failed to create a new case.', 'danger');
+                } finally {
+                    submitBtn.disabled = false;
+                    submitBtn.innerHTML = originalText;
                 }
             })
         });
-
-        function showAlert(message, type = 'success') {
-            const alertContainer = document.getElementById('alert-container');
-            alertContainer.innerHTML = `
-                <div class="alert alert-${type} alert-dismissible fade show mt-4" role="alert">
-                    ${message}
-                    <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
-                </div>
-            `;
-
-            setTimeout(() => {
-                alertContainer.innerHTML = '';
-            }, 3000);
-        }
     </script>
 @endpush

@@ -15,7 +15,6 @@ class SuspectCaseController extends Controller
 {
     public function indexApi()
     {
-        // $cases = SuspectCase::all();
         $cases = DB::table('suspect_cases as a')
                 ->join('suspects as b', 'a.suspect_case_id', '=', 'b.suspect_case_id')
                 ->select(
@@ -54,8 +53,10 @@ class SuspectCaseController extends Controller
                 // ->where('a.is_closed', '=', '0')
                 ->groupBy('a.suspect_case_id', 'a.title', 'a.scan_parameter_code', 'a.scan_type_id', 'a.qr_length', 'a.is_closed', 'a.created_by', 'a.created_at')
                 ->get();
+        
+        $bearerToken = env('BEARER_TOKEN');
 
-        return view('pages.cases.index', compact('cases'));
+        return view('pages.cases.index', compact('cases', 'bearerToken'));
     }
 
     public function create()
@@ -66,56 +67,8 @@ class SuspectCaseController extends Controller
 
         return view('pages.cases.create', compact('scanParameters', 'scanTypes', 'bearerToken'));
     }
-
-    public function store(Request $request)
-    {
-        $validator = Validator::make($request->all(), [
-            'title' => 'required',
-            'scanType' => 'required',
-            'scanParameter' => 'required',
-            'qrLength' => 'required',
-            // 'stringStartIndex' => 'required',
-            // 'stringLength' => 'required',
-        ]);
-
-        if ($validator->fails()) {
-            return redirect('/cases/create')->withErrors($validator)->withInput();
-        }
-
-        if (!empty($request->input('qrContent')) && ($request->input('qrLength') != strlen($request->input('qrContent')))) {
-            return redirect('/cases/create')->withErrors('Panjang karakter QR tidak sesuai dengan hasil scan')->withInput();
-        }
-        
-        $latestCase = SuspectCase::orderBy('created_at', 'desc')->value('suspect_case_id');
-        
-        if ($latestCase) {
-            $number = (int) substr($latestCase, -4);
-            $newNumber = $number + 1;
-            $newCaseId = 'CASE' . str_pad($newNumber, 4, '0', STR_PAD_LEFT);
-        } else {
-            $newCaseId = 'CASE0001';
-        }
-
-        // $countSuspectCase = SuspectCase::count();
-        // $suspectCaseId = 'CASE' . str_pad($countSuspectCase + 1, 4, "0", STR_PAD_LEFT);
-
-        $suspectCase = SuspectCase::create([
-            'suspect_case_id' => $newCaseId,
-            'title' => $request->input('title'),
-            'scan_parameter_code' => $request->input('scanParameter'),
-            'scan_type_id' => $request->input('scanType'),
-            'qr_length' => $request->input('qrLength'),
-            // 'string_start_index' => $request->input('stringStartIndex'),
-            // 'string_length' => $request->input('stringLength'),
-            'is_closed' => '0',
-            'created_by' => session('npk'),
-            'created_at' => date('Y-m-d H:i:s'),
-        ]);
-
-        return redirect('/cases/create')->with('success', 'New Case created successfully!');
-    }
     
-    public function apiStore(Request $request)
+    public function store(Request $request)
     {
         $validator = Validator::make($request->all(), [
             'title' => 'required|string',
@@ -149,7 +102,7 @@ class SuspectCaseController extends Controller
             'scan_type_id' => $request->input('scanType'),
             'qr_length' => $request->input('qrLength'),
             'is_closed' => '0',
-            'created_by' => $request->user()->npk ?? null, // Or use session('npk') if needed
+            'created_by' => $request->input('user_id') ?? null, // Or use session('npk') if needed
             'created_at' => now(),
         ]);
 
@@ -161,8 +114,9 @@ class SuspectCaseController extends Controller
         $suspectCase = SuspectCase::where('suspect_case_id', $suspectCaseId)->first();
         $scanParameters = ScanParameter::all();
         $scanTypes = ScanType::all();
+        $bearerToken = env('BEARER_TOKEN');
 
-        return view('pages.cases.edit', compact('suspectCase', 'scanParameters', 'scanTypes'));
+        return view('pages.cases.edit', compact('suspectCase', 'scanParameters', 'scanTypes', 'bearerToken'));
     }
 
     public function update(Request $request, $suspectCaseId)
@@ -175,63 +129,47 @@ class SuspectCaseController extends Controller
         ]);
 
         if ($validator->fails()) {
-            return redirect('/cases/create')->withErrors($validator)->withInput();
+            return ResponseFormatter::error(null, $validator->errors()->first(), 400);
         }
 
-        $update = SuspectCase::where('suspect_case_id', $suspectCaseId)
-                            ->update([
-                                'title' => $request->input('title'),
-                                'scan_parameter_code' => $request->input('scanParameter'),
-                                'scan_type_id' => $request->input('scanType'),
-                                'qr_length' => $request->input('qrLength'),
-                                'is_closed' => $request->input('caseStatus'),
-                            ]);
+        $case = SuspectCase::find($suspectCaseId);
 
-        return redirect()->route('cases.edit', $suspectCaseId)->with('success', 'Case updated successfully!');
+        if (!$case) {
+            return ResponseFormatter::error(null, 'Case not found', 404);
+        }
+    
+        $case->update([
+            'title' => $request->input('title'),
+            'scan_parameter_code' => $request->input('scanParameter'),
+            'scan_type_id' => $request->input('scanType'),
+            'qr_length' => $request->input('qrLength'),
+            'is_closed' => $request->input('is_closed'),
+            'updated_by' => $request->input('user_id'),
+            'updated_at' => now(),
+        ]);
+    
+        return ResponseFormatter::success($case, 'Case updated successfully!');
     }
+
 
     public function destroy($suspectCaseId)
     {
         DB::beginTransaction();
+
         try {
-            SuspectCase::where('suspect_case_id', $suspectCaseId)->delete();
-            Suspect::where('suspect_case_id', $suspectCaseId)->delete();
+            $deletedCase = SuspectCase::where('suspect_case_id', $suspectCaseId)->delete();
+            $deletedSuspects = Suspect::where('suspect_case_id', $suspectCaseId)->delete();
 
             DB::commit();
+
+            if (!$deletedCase) {
+                return ResponseFormatter::error(null, 'Case not found or already deleted.', 404);
+            }
+    
+            return ResponseFormatter::success(null, 'Case deleted successfully!');
         } catch (\Exception $e) {
             DB::rollBack();
-            return redirect()->route('cases.index')->with('errors', 'Failed to delete data!' . $e->getMessage());
+            return ResponseFormatter::error(null, 'Failed to delete case. ' . $e->getMessage(), 500);
         }
-
-        return redirect()->route('cases.index')->with('success', 'Case deleted successfully!');
-    }
-
-    public function store2(Request $request)
-    {
-        $validator = Validator::make($request->all(), [
-            'tittle' => 'required', 
-            'scan_parameter' => 'required',
-        ]);
-
-        if ($validator->fails()) {
-            return redirect('/users/management')->withErrors($validator)->withInput();
-        }
-
-        $countSuspectCase = SuspectCase::count();
-        $suspectCaseId = 'CASE' . str_pad($countSuspectCase, 4, "0", STR_PAD_LEFT);
-
-        $suspectCase = SuspectCase::create([
-            'suspect_case_id' => $suspectCaseId,
-            'title' => $request->input('tittle'),
-            'scan_parameter_id' => '',
-            'qr_length' => '',
-            'string_start_index' => '',
-            'string_length' => '',
-            'is_closed' => '0',
-            'created_by' => session('npk'),
-            'created_at' => date('Y-m-d H:i:s'),
-        ]);
-
-        return redirect('/users/management')->with('success', 'Sorting Case created successfully!');
     }
 }
