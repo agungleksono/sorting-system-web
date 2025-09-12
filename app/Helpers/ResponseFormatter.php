@@ -42,7 +42,7 @@ class ResponseFormatter
         self::$response['meta']['message'] = $message;
         self::$response['data'] = $data;
 
-        return response()->json(self::$response, 200);
-        // return response()->json(self::$response, self::$response['meta']['code']);
+        // return response()->json(self::$response, 200);
+        return response()->json(self::$response, self::$response['meta']['code']);
     }
 }
