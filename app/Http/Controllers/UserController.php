@@ -8,6 +8,7 @@ use App\Models\Authority;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Validator;
 use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Facades\Log;
 
 class UserController extends Controller
 {
@@ -22,30 +23,38 @@ class UserController extends Controller
 
     public function store(Request $request)
     {
-        $validator = Validator::make($request->all(), [
-            'npk' => 'required|unique:users,npk', 
-            'user_name' => 'required|string|max:30', 
-            'password' => 'required|string|confirmed', 
-            'section' => 'required|string', 
-            'authority' => 'required|string', 
-        ]);
+        try {
+            $validator = Validator::make($request->all(), [
+                'npk' => 'required|unique:users,npk', 
+                'user_name' => 'required|string|max:30', 
+                'password' => 'required|string|confirmed', 
+                'section' => 'required|string', 
+                'authority' => 'required|string', 
+            ]);
+    
+            if ($validator->fails()) {
+                return redirect('/users/management')->withErrors($validator)->withInput();
+            }
+    
+            $user = User::create([
+                'name' => $request->input('user_name'),
+                'npk' => $request->input('npk'),
+                'password' => Hash::make($request->input('password')),
+                'section' => $request->input('section'),
+                'authority' => $request->input('authority'),
+                'is_active' => '1',
+                'added_by' => session('npk'),
+                'added_at' => date('Y-m-d H:i:s'),
+            ]);
+    
+            return redirect('/users/management')->with('success', 'User created successfully!');
+        } catch (\Exception $e) {
+            Log::error('Error storing user: ' . $e->getMessage(), [
+                'exception' => $e
+            ]);
 
-        if ($validator->fails()) {
-            return redirect('/users/management')->withErrors($validator)->withInput();
+            return redirect('/users/management')->with('error', 'Failed to store user!');
         }
-
-        $user = User::create([
-            'name' => $request->input('user_name'),
-            'npk' => $request->input('npk'),
-            'password' => Hash::make($request->input('password')),
-            'section' => $request->input('section'),
-            'authority' => $request->input('authority'),
-            'is_active' => '1',
-            'added_by' => session('npk'),
-            'added_at' => date('Y-m-d H:i:s'),
-        ]);
-
-        return redirect('/users/management')->with('success', 'User created successfully!');
     }
 
     public function edit($user_id)
@@ -59,32 +68,39 @@ class UserController extends Controller
 
     public function update(Request $request, $user_id)
     {
-        $validator = Validator::make($request->all(), [
-            'npk' => 'required|string|max:10',
-            'user_name' => 'required|string|max:30',
-            'status' => 'required',
-            'section' => 'required',
-            'authority' => 'required',
-        ]);
-
-        if ($validator->fails()) {
-            return redirect('/users/management')->withErrors($validator)->withInput();
-        }
-        
-        $updated = User::where('user_id', $user_id)
-                   ->update([
-                        'name' => $request->input('user_name'),
-                        'npk' => $request->input('npk'),
-                        'is_active' => $request->input('status'),
-                        'section' => $request->input('section'),
-                        'authority' => $request->input('authority'),
-                        'updated_by' => session('npk'),
-                        'updated_at' => date('Y-m-d H:i:s'),
-                    ]);
-
-        if ($updated) {
-            return redirect('/users/management')->with('success', 'User updated successfully!');
-        } else {
+        try {
+            $validator = Validator::make($request->all(), [
+                'npk' => 'required|string|max:10',
+                'user_name' => 'required|string|max:30',
+                'status' => 'required',
+                'section' => 'required',
+                'authority' => 'required',
+            ]);
+    
+            if ($validator->fails()) {
+                return redirect('/users/management')->withErrors($validator)->withInput();
+            }
+            
+            $updated = User::where('user_id', $user_id)
+                       ->update([
+                            'name' => $request->input('user_name'),
+                            'npk' => $request->input('npk'),
+                            'is_active' => $request->input('status'),
+                            'section' => $request->input('section'),
+                            'authority' => $request->input('authority'),
+                            'updated_by' => session('npk'),
+                            'updated_at' => date('Y-m-d H:i:s'),
+                        ]);
+    
+            if ($updated) {
+                return redirect('/users/management')->with('success', 'User updated successfully!');
+            } else {
+                return redirect('/users/management')->with('error', 'Failed to update user!');
+            }
+        } catch (\Exception $e) {
+            Log::error('Error updating user: ' . $e->getMessage(), [
+                'exception' => $e
+            ]);
             return redirect('/users/management')->with('error', 'Failed to update user!');
         }
     }
@@ -93,10 +109,12 @@ class UserController extends Controller
     {
         try {
             User::where('user_id', $userId)->delete();
+            return redirect()->route('users.index')->with('success', 'User deleted successfully!');
         } catch (\Exception $e) {
+            Log::error('Error deleting user: ' . $e->getMessage(), [
+                'exception' => $e
+            ]);
             return redirect()->route('users.index')->with('errors', 'Failed to delete data!' . $e->getMessage());
         }
-
-        return redirect()->route('users.index')->with('success', 'User deleted successfully!');
     }
 }
