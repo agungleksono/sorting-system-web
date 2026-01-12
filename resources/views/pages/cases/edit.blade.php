@@ -37,7 +37,7 @@
                     @endforeach
                 </select>
             </div>
-            <div class="mb-3">
+            <!-- <div class="mb-3">
                 <label for="qrContent" class="form-label">Scan QR (Opsional)</label>
                 <textarea class="form-control" id="qrContent" name="qrContent" rows="3"></textarea>
                 <div id="qrContentHelp" class="form-text">Scan sample QR untuk menghitung otomatis panjang karakter.</div>
@@ -45,7 +45,7 @@
             <div class="mb-3">
                 <label for="qrLength" class="form-label">Panjang Karakter QR</label>
                 <input type="text" class="form-control" id="qrLength" name="qrLength" value="{{ $suspectCase->qr_length }}">
-            </div>
+            </div> -->
             <div class="mb-3 row ps-3">
                 <div class="form-check col-auto me-4">
                     <label class="form-check-label" for="caseStatusOpen">
@@ -74,14 +74,14 @@
             const suspectCaseId = "{{ $suspectCase->suspect_case_id }}";
             const userId = "{{ session('npk') }}";
             const form = document.getElementById('caseForm');
-            const qrContent = document.getElementById('qrContent');
-            const qrLength = document.getElementById('qrLength');
+            // const qrContent = document.getElementById('qrContent');
+            // const qrLength = document.getElementById('qrLength');
 
-            qrContent.addEventListener('keydown', (e) => {
-                if (e.key === 'Enter') {
-                    qrLength.value = qrContent.value.length;
-                }
-            });
+            // qrContent.addEventListener('keydown', (e) => {
+            //     if (e.key === 'Enter') {
+            //         qrLength.value = qrContent.value.length;
+            //     }
+            // });
 
             form.addEventListener('submit', async (e) => {
                 e.preventDefault();
@@ -96,20 +96,21 @@
                 // Collect form data
                 const data = {
                     title: document.getElementById('title').value,
-                    scanType: document.getElementById('scanType').value,
-                    scanParameter: document.getElementById('scanParameter').value,
-                    qrLength: qrLength.value,
+                    scan_type: document.getElementById('scanType').value,
+                    scan_parameter: document.getElementById('scanParameter').value,
+                    // qr_length: qrLength.value,
                     is_closed: document.querySelector('input[name="caseStatus"]:checked')?.value || 0,
                     user_id: userId,
                 };
 
                 try {
                     const response = await apiFetch(`/api/v1/cases/${suspectCaseId}`, 'PATCH', data, API_BEARER_TOKEN);
+                    console.log(response)
 
                     document.getElementById('title').value = response.data.title;
                     document.getElementById('scanType').value = response.data.scan_type_id;
                     document.getElementById('scanParameter').value = response.data.scan_parameter_code;
-                    document.getElementById('qrLength').value = response.data.qr_length;
+                    // document.getElementById('qrLength').value = response.data.qr_length;
 
                     if (response.data.is_closed == 1) {
                         document.getElementById('caseStatusClose').checked = true;

@@ -21,22 +21,22 @@
             <div class="mb-3">
                 <label for="scanType" class="form-label">Scan Type</label>
                 <select class="form-select" id="scanType" name="scanType" required>
-                    <option value="" selected disabled>--- Pilih Scan Type ---</option>
+                    <option value="" selected disabled>--- Choose Scan Type ---</option>
                     @foreach ($scanTypes as $type)
                     <option value="{{ $type->scan_type_id }}">{{ $type->title }}</option>
                     @endforeach
                 </select>
             </div>
             <div class="mb-3">
-                <label for="scanParameter" class="form-label">Scan Parameter</label>
+                <label for="scanParameter" class="form-label">Traced By</label>
                 <select class="form-select" id="scanParameter" name="scanParameter" required>
-                    <option value="" selected disabled>--- Pilih Scan Parameter ---</option>
+                    <option value="" selected disabled>--- Choose Trace By ---</option>
                     @foreach ($scanParameters as $parameter)
                     <option value="{{ $parameter->code }}">{{ $parameter->scan_parameter }}</option>
                     @endforeach
                 </select>
             </div>
-            <div class="mb-3">
+            <!-- <div class="mb-3">
                 <label for="qrContent" class="form-label">Scan QR</label>
                 <textarea class="form-control" id="qrContent" name="qrContent" rows="3"></textarea>
                 <div id="qrContentHelp" class="form-text">Scan sample QR untuk menghitung otomatis panjang karakter.</div>
@@ -44,7 +44,7 @@
             <div class="mb-3">
                 <label for="qrLength" class="form-label">Panjang Karakter QR</label>
                 <input type="text" class="form-control" id="qrLength" name="qrLength">
-            </div>
+            </div> -->
             <button type="submit" id="submitBtn" class="btn btn-primary">Save</button>
         </form>
     </div>
@@ -58,14 +58,14 @@
             const API_BEARER_TOKEN = "{{ $bearerToken }}";
             const userId = "{{ session('npk') }}";
             const form = document.getElementById('caseForm');
-            const qrContent = document.getElementById('qrContent');
-            const qrLength = document.getElementById('qrLength');
+            // const qrContent = document.getElementById('qrContent');
+            // const qrLength = document.getElementById('qrLength');
 
-            qrContent.addEventListener('keydown', (e) => {
-                if (e.key === 'Enter' || e.key === 'Tab') {
-                    qrLength.value = qrContent.value.length;
-                }
-            })
+            // qrContent.addEventListener('keydown', (e) => {
+            //     if (e.key === 'Enter' || e.key === 'Tab') {
+            //         qrLength.value = qrContent.value.length;
+            //     }
+            // })
 
             form.addEventListener('submit', async (e) => {
                 e.preventDefault();
@@ -80,10 +80,10 @@
                 // Collect form data
                 const data = {
                     title: document.getElementById('title').value,
-                    scanType: document.getElementById('scanType').value,
-                    scanParameter: document.getElementById('scanParameter').value,
+                    scan_type: document.getElementById('scanType').value,
+                    scan_parameter: document.getElementById('scanParameter').value,
                     // qrContent: qrContent.value,
-                    qrLength: parseInt(qrLength.value),
+                    // qr_length: parseInt(qrLength.value),
                     user_id: userId,
                 };
 

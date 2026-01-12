@@ -29,6 +29,7 @@ Route::prefix('v1')->group(function () {
         Route::post('/reprint', [ScanController::class, 'reprint']);
 
         Route::get('/cases', [SuspectCaseController::class, 'indexApi']);
+        Route::get('/cases/{suspect_case_id}', [SuspectCaseController::class, 'show']);
         Route::post('/cases', [SuspectCaseController::class, 'store']);
         Route::patch('/cases/{suspect_case_id}', [SuspectCaseController::class, 'update']);
         Route::delete('/cases/{suspect_case_id}', [SuspectCaseController::class, 'destroy']);

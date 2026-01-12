@@ -14,7 +14,8 @@
         "guzzlehttp/guzzle": "^7.0.1",
         "laravel/framework": "^8.0",
         "laravel/tinker": "^2.0",
-        "phpoffice/phpspreadsheet": "^1.12"
+        "phpoffice/phpspreadsheet": "^1.12",
+        "rap2hpoutre/laravel-log-viewer": "^2.5"
     },
     "require-dev": {
         "facade/ignition": "^2.3.6",

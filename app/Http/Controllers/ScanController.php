@@ -47,6 +47,8 @@ class ScanController extends Controller
                             ])
                             ->get();
 
+        $sequence = QrCode::where('suspect_case_id', $suspectCaseId)->count() + 1;
+
         $listPart = null;
 
         if ($scanParameter == 'PART_NO') $listPart = $suspects->pluck('part_no')->toArray();
@@ -79,6 +81,7 @@ class ScanController extends Controller
             'is_suspect' => $isSuspectFound,
             'part_no' => $isSuspectFound ? $foundedData['part_no'] : '-',
             'search_value' => $isSuspectFound ? $foundedData['search_value'] : '-',
+            'sequence' => (string) $sequence,
         ];
 
         DB::beginTransaction();
@@ -104,17 +107,18 @@ class ScanController extends Controller
                 'created_at' => date('Y-m-d H:i:s'),
                 'created_by' => $scannedBy,
                 'suspect_id' => $isSuspectFound ? $foundedData['suspect_id'] : null,
+                'sequence' => $sequence,
             ]);
     
-            PrintQueue::create([
-                'part_no' => $isSuspectFound ? $foundedData['part_no'] : null,
-                'lot_no' => $isSuspectFound ? $foundedData['lot_no'] : null,
-                'invoice_no' => $isSuspectFound ? $foundedData['invoice_no'] : null,
-                'box_id' => $isSuspectFound ? $foundedData['box_id'] : null,
-                'scan_parameter' => $isSuspectFound ? $scanParameter : null,
-                'judgment' => $isSuspectFound ? 'ng' : 'ok',
-                'status' => 'pending',
-            ]);
+            // PrintQueue::create([
+            //     'part_no' => $isSuspectFound ? $foundedData['part_no'] : null,
+            //     'lot_no' => $isSuspectFound ? $foundedData['lot_no'] : null,
+            //     'invoice_no' => $isSuspectFound ? $foundedData['invoice_no'] : null,
+            //     'box_id' => $isSuspectFound ? $foundedData['box_id'] : null,
+            //     'scan_parameter' => $isSuspectFound ? $scanParameter : null,
+            //     'judgment' => $isSuspectFound ? 'ng' : 'ok',
+            //     'status' => 'pending',
+            // ]);
 
             DB::commit();
             return ResponseFormatter::success($responseData, 'Scanning success');
@@ -207,6 +211,8 @@ class ScanController extends Controller
                             })
                             ->get();
 
+        $sequence = QrCode::where('suspect_case_id', $suspectCaseId)->count() + 1;
+
         $mapScanParameter = [
             'PART_NO' => 'part_no',
             'LOT_NO' => 'lot_no',
@@ -244,6 +250,7 @@ class ScanController extends Controller
         $result = null;
         if ($isSuspectFound) {
             $result = DB::table('suspects')
+                        ->where('suspect_case_id', $suspectCaseId)
                         ->where($whereClause, $foundedData['search_value'])
                         ->orderByRaw('CASE 
                                         WHEN progress_quantity IS NOT NULL AND CAST(progress_quantity AS INT) < CAST(quantity AS INT) THEN 1 
@@ -258,6 +265,7 @@ class ScanController extends Controller
             'is_suspect' => $isSuspectFound,
             'part_no' => $isSuspectFound ? $foundedData['part_no'] : '-',
             'search_value' => $isSuspectFound ? $foundedData['search_value'] : '-',
+            'sequence' => (string) $sequence,
         ];
 
         DB::beginTransaction();
@@ -294,15 +302,15 @@ class ScanController extends Controller
                 'created_by' => $scannedBy,
             ]);
     
-            PrintQueue::create([
-                'part_no' => $isSuspectFound ? $foundedData['part_no'] : null,
-                'lot_no' => $isSuspectFound ? $foundedData['lot_no'] : null,
-                'invoice_no' => $isSuspectFound ? $foundedData['invoice_no'] : null,
-                'box_id' => $isSuspectFound ? $foundedData['box_id'] : null,
-                'scan_parameter' => $isSuspectFound ? $scanParameter : null,
-                'judgment' => $isSuspectFound ? 'ng' : 'ok',
-                'status' => 'pending',
-            ]);
+            // PrintQueue::create([
+            //     'part_no' => $isSuspectFound ? $foundedData['part_no'] : null,
+            //     'lot_no' => $isSuspectFound ? $foundedData['lot_no'] : null,
+            //     'invoice_no' => $isSuspectFound ? $foundedData['invoice_no'] : null,
+            //     'box_id' => $isSuspectFound ? $foundedData['box_id'] : null,
+            //     'scan_parameter' => $isSuspectFound ? $scanParameter : null,
+            //     'judgment' => $isSuspectFound ? 'ng' : 'ok',
+            //     'status' => 'pending',
+            // ]);
 
             DB::commit();
             return ResponseFormatter::success($responseData, 'Scanning success');
@@ -314,54 +322,56 @@ class ScanController extends Controller
 
     public function reprint(Request $request)
     {
-        $validator = Validator::make($request->all(), [
-            'qr_code' => 'required',
-            'suspect_case_id' => 'required',
-        ]);
-
-        if ($validator->fails()) {
-            return ResponseFormatter::error(null, $validator->errors()->first(), 400);
-        }
-
-        $qrCode = $request->input('qr_code');
-        $suspectCaseId = $request->input('suspect_case_id');
-
-        $qrDb = QrCode::where([
-                    'suspect_case_id' => $suspectCaseId,
-                    'qr_content' => $qrCode,
-                ])->first();
-
-        if (!$qrDb) {
-            return ResponseFormatter::error(null, 'QR Code not found.', 404);
-        }
-
-        $scanParameterToColumn = [
-            'PART_NO' => 'part_no',
-            'LOT_NO' => 'lot_no',
-            'INVOICE_NO' => 'invoice_no',
-            'BOX_NO' => 'box_no',
-        ];
-        $dbColumn = $scanParameterToColumn[$qrDb->scan_parameter] ?? null;
-
-        $responseData = [
-            'is_suspect' => $qrDb->judgment == 'ng' ? true : false,
-            'part_no' => $qrDb->part_no,
-            'search_value' => $qrDb->$dbColumn
-        ];
-
         try {
-            PrintQueue::create([
-                'part_no' => $qrDb->part_no,
-                'lot_no' => $qrDb->lot_no,
-                'invoice_no' => $qrDb->invoice_no,
-                'judgment' => $qrDb->judgment,
-                'box_id' => $qrDb->box_id,
-                'scan_parameter' => $qrDb->scan_parameter,
-                'status' => 'pending',
+            $validator = Validator::make($request->all(), [
+                'qr_code' => 'required',
+                'suspect_case_id' => 'required',
             ]);
 
+            if ($validator->fails()) {
+                return ResponseFormatter::error(null, $validator->errors()->first(), 400);
+            }
+
+            $qrCode = $request->input('qr_code');
+            $suspectCaseId = $request->input('suspect_case_id');
+
+            $qrDb = QrCode::where([
+                        'suspect_case_id' => $suspectCaseId,
+                        'qr_content' => $qrCode,
+                    ])->first();
+
+            if (!$qrDb) {
+                return ResponseFormatter::error(null, 'QR Code not found.', 404);
+            }
+
+            $scanParameterToColumn = [
+                'PART_NO' => 'part_no',
+                'LOT_NO' => 'lot_no',
+                'INVOICE_NO' => 'invoice_no',
+                'BOX_NO' => 'box_no',
+            ];
+            $dbColumn = $scanParameterToColumn[$qrDb->scan_parameter] ?? null;
+
+            $responseData = [
+                'is_suspect' => $qrDb->judgment == 'ng' ? true : false,
+                'part_no' => !empty($qrDb->part_no) ? $qrDb->part_no : '-',
+                'search_value' => !empty($qrDb->$dbColumn) ? $qrDb->$dbColumn : '-',
+                'sequence' => $qrDb->sequence,
+            ];
+
+        
+            // PrintQueue::create([
+            //     'part_no' => $qrDb->part_no,
+            //     'lot_no' => $qrDb->lot_no,
+            //     'invoice_no' => $qrDb->invoice_no,
+            //     'judgment' => $qrDb->judgment,
+            //     'box_id' => $qrDb->box_id,
+            //     'scan_parameter' => $qrDb->scan_parameter,
+            //     'status' => 'pending',
+            // ]);
+
             return ResponseFormatter::success($responseData, 'Reprint success');
-        } catch (\Throwable $th) {
+        } catch (\Exception $e) {
             return ResponseFormatter::error(null, 'Failed Reprint.', 400);
         }
     }

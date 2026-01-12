@@ -47,4 +47,6 @@ Route::middleware(['auth.web'])->group(function () {
     Route::put('/users/{user_id}', [UserController::class, 'update'])->name('user.update');
     Route::post('/users', [UserController::class, 'store']);
     Route::delete('/users/{user_id}', [UserController::class, 'destroy'])->name('users.destroy');
+
+    Route::get('/admin/logs', '\Rap2hpoutre\LaravelLogViewer\LogViewerController@index');
 });

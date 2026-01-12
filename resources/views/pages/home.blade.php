@@ -157,11 +157,15 @@
                         </td>
                         <td class="text-center">{{ $loop->iteration }}</td>
                         <td class="text-center">{{ $suspect['part_no'] }}</td>
-                        <td class="text-center">{{ $suspect['lot_no'] }}</td>
-                        <td class="text-center">{{ $suspect['box_id'] }}</td>
-                        <td class="text-center">{{ $suspect['invoice_no'] }}</td>
-                        <td class="text-center">{{ $suspect['container_no'] }}</td>
-                        <td class="text-center">{{ $suspect['quantity'] }}</td>
+                        <td class="text-center">{{ !empty($suspect['lot_no']) ? $suspect['lot_no'] : '-' }}</td>
+                        <td class="text-center">{{ !empty($suspect['box_id']) ? $suspect['box_id'] : '-' }}</td>
+                        <td class="text-center">{{ !empty($suspect['invoice_no']) ? $suspect['invoice_no'] : '-' }}</td>
+                        <td class="text-center">{{ !empty($suspect['container_no']) ? $suspect['container_no'] : '-' }}</td>
+                        @if ($suspect['scan_type_id'] == '001')
+                            <td class="text-center">{{ !empty($suspect['quantity']) ? $suspect['quantity'] : '0' }}</td>
+                        @else
+                            <td class="text-center">{{ !empty($suspect['progress_quantity']) ? $suspect['progress_quantity'] : 0 }} / {{ !empty($suspect['quantity']) ? $suspect['quantity'] : '0' }}</td>
+                        @endif
                         <td class="text-center">{!! $suspect['is_scanned'] ? '<span class="badge rounded-pill text-bg-danger">NG</span>' : '<span class="badge rounded-pill text-bg-secondary">Not Scanned</span>' !!}</td>
                         <td>{{ $suspect['scanned_at'] }}</td>
                         <td>{{ $suspect['scanned_by'] }}</td>
